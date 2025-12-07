@@ -35,10 +35,21 @@
 
     /* Jugadores en el campo */
     .jugador-campo {
-      position:absolute; width:80px; height:80px;
-      border-radius:50%; font-weight:bold; font-size:.8rem;
-      display:flex; align-items:center; justify-content:center;
-      text-align:center; padding:4px;
+        position:absolute; 
+        width:55px; 
+        height:55px;
+        border-radius:50%; 
+        font-weight:bold; 
+        font-size:.8rem;
+        display:flex; 
+        align-items:center; 
+        justify-content:center;
+        text-align:center; 
+        padding:4px;
+        /* CRUCIAL: Centra el círculo en el punto de coordenada (left/top) */
+        transform: translate(-50%, -50%); 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        z-index: 10;
     }
     .equipoA { background:#fff; border:2px solid #000; color:#000; }
     .equipoB { background:#f44336; color:#fff; }
@@ -54,7 +65,7 @@
     #defensaB1 { right:18%; top:25%; }
     #defensaB2 { right:18%; top:65%; }
     #alaB { right:32%; top:35%; }
-    #pivotB { right:42%; top:50%; }
+    #pivotB { right:32%; top:55%; }
 
     /* Móviles */
     @media (max-width:768px) {
@@ -63,7 +74,7 @@
     align-items: flex-start; 
   }
   .jugador-campo { 
-    width: 60px;   /* Antes 80px */
+    width: 20px;   /* Antes 80px */
     height: 60px;  /* Antes 80px */
     font-size: 0.7rem; 
   }
