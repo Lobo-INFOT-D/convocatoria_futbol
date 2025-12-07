@@ -23,11 +23,11 @@
     .campo {
       position:relative; width:100%; max-width:1000px;
       aspect-ratio:2.2/1; margin:1rem auto;
-      background:#4caf50; border:4px solid #fff;
+      background:#3500f3; border:4px solid #ee0303;
       border-radius:8px; overflow:hidden;
     }
     .linea-central { position:absolute; inset:0 auto 0 50%; width:2px; background:#fff; }
-    .area, .porteria { position:absolute; border:2px solid #fff; }
+    .area, .porteria { position:absolute; border:2px solid #f00808; }
     .area { width:20%; height:40%; top:30%; }
     .area.izq { left:0; } .area.der { right:0; }
     .porteria { width:4%; height:20%; top:40%; background:rgba(255,255,255,.2); }
@@ -35,33 +35,37 @@
 
     /* Jugadores en el campo */
     .jugador-campo {
-        position:absolute; 
-        width:55px; 
-        height:55px;
-        border-radius:50%; 
-        font-weight:bold; 
-        font-size:.8rem;
-        display:flex; 
-        align-items:center; 
-        justify-content:center;
-        text-align:center; 
-        padding:4px;
-        /* CRUCIAL: Centra el círculo en el punto de coordenada (left/top) */
-        transform: translate(-50%, -50%); 
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        z-index: 10;
-    }
-    .equipoA { background:#fff; border:2px solid #000; color:#000; }
-    .equipoB { background:#f44336; color:#fff; }
+  position: absolute;
+  min-width: 40px;           /* ancho mínimo para que el nombre no se corte */
+  padding: 4px 8px;         /* espacio alrededor del texto */
+  height: auto;             /* altura automática según el contenido */
+  border-radius: 0;         /* eliminar redondeo */
+  background: transparent;  /* sin fondo */
+  box-shadow: none;         /* sin sombra */
+  border: none;             /* sin borde por defecto */
+  font-weight: 700;
+  font-size: .9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: inherit;           /* usa el color de la clase equipo si existe */
+  white-space: nowrap;      /* evita saltos de línea en nombres cortos */
+  overflow: visible;
+  transform: translate(-50%, -50%); /* mantiene el centrado en left/top */
+  z-index: 10;
+}
+   .equipoA { color: #ffffff; background: transparent; border: none; }
+.equipoB { color: #111111; background: transparent; border: none; }
 
     /* POSICIONES (NO TOCADAS) */
-    #porteroA { left:5%; top:45%; }
+    #porteroA { left:8%; top:45%; }
     #defensaA1 { left:18%; top:25%; }
-    #defensaA2 { left:18%; top:65%; }
+    #defensaA2 { left:18%; top:75%; }
     #alaA { left:32%; top:35%; }
     #extraA { left:32%; top:55%; }
 
-    #porteroB { right:5%; top:45%; }
+    #porteroB { right:1%; top:45%; }
     #defensaB1 { right:18%; top:25%; }
     #defensaB2 { right:18%; top:65%; }
     #alaB { right:32%; top:35%; }
@@ -238,7 +242,7 @@
           <label class="btn btn-outline-dark" for="eqA-${jugador.id}">⚪ Blanco</label>
 
           <input type="radio" class="btn-check" name="equipo-${jugador.id}" id="eqB-${jugador.id}" value="B">
-          <label class="btn btn-outline-danger" for="eqB-${jugador.id}">🔴 Rojo</label>
+          <label class="btn btn-outline-dark" for="eqB-${jugador.id}">⚫ negro</label>
         </div>
 
         <button class="btn btn-warning btn-sm" onclick="removeJugador('${jugador.id}')">❌</button>
