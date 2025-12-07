@@ -73,7 +73,6 @@
 }
 </style>
 </head>
-
 <body>
 <div class="container py-4">
 
@@ -133,182 +132,236 @@
   </div>
 </div>
 
-<script>
-const jugadoresBD = ["Pablo","Javi","Luis","Miguel","Álvaro","Carlos","Rafa","Sergio","Manu","Dani"];
-const posicionesA = ["porteroA","defensaA1","defensaA2","alaA","extraA"];
-const posicionesB = ["porteroB","defensaB1","defensaB2","alaB","pivotB"];
+<!-- Firebase SDK -->
+<script type="module">
 
-let ocupadasA = 0, ocupadasB = 0;
+  /* ================================
+      IMPORTS FIREBASE (CORREGIDO)
+  ==================================*/
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+  import { 
+    getFirestore, collection, addDoc, deleteDoc, doc, getDocs 
+  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-function renderLista(){
-  const cont = document.getElementById("listaJugadores");
+  /* ================================
+          CONFIG FIREBASE
+  ==================================*/
+  const firebaseConfig = {
+    apiKey: "AIzaSyDA_FDkrsAxtBt5_BhRgRkq3NNq3Lt7xdo",
+    authDomain: "convocatoria-8c340.firebaseapp.com",
+    projectId: "convocatoria-8c340",
+    storageBucket: "convocatoria-8c340.firebasestorage.app",
+    messagingSenderId: "968350738606",
+    appId: "1:968350738606:web:bdff77002fe19077a7a53f",
+    measurementId: "G-ZV9MG4T1FF"
+  };
 
-  // 1. Guardar estado actual de roles y equipos
-  let estado = {};
-  jugadoresBD.forEach(nombre=>{
-    const rolSel = document.querySelector(`input[name="rol-${nombre}"]:checked`);
-    const eqSel  = document.querySelector(`input[name="equipo-${nombre}"]:checked`);
-    estado[nombre] = {
-      rol: rolSel ? rolSel.value : null,
-      eq:  eqSel ? eqSel.value : null
-    };
-  });
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
 
-  // 2. Vaciar y reconstruir lista
-  cont.innerHTML="";
-  jugadoresBD.forEach(nombre=>{
-    const div=document.createElement("div");
-    div.className="jugador-row";
+  /* ================================
+             VARIABLES
+  ==================================*/
+  const posicionesA = ["porteroA","defensaA1","defensaA2","alaA","extraA"];
+  const posicionesB = ["porteroB","defensaB1","defensaB2","alaB","pivotB"];
+  let ocupadasA = 0, ocupadasB = 0;
+  let jugadoresBD = [];
 
-    div.innerHTML=`
-      <div class="jugador-nombre">${nombre}</div>
+  const inputNombre = document.getElementById("inputNombre");
+  const btnAddJugador = document.getElementById("btnAddJugador");
 
-      <div class="btn-group">
-        <input type="radio" class="btn-check" name="rol-${nombre}" id="tit-${nombre}" value="titular">
-        <label class="btn btn-outline-success" for="tit-${nombre}">Titular</label>
-
-        <input type="radio" class="btn-check" name="rol-${nombre}" id="res-${nombre}" value="reserva">
-        <label class="btn btn-outline-secondary" for="res-${nombre}">Reserva</label>
-      </div>
-
-      <div class="btn-group">
-        <input type="radio" class="btn-check" name="equipo-${nombre}" id="eqA-${nombre}" value="A">
-        <label class="btn btn-outline-dark" for="eqA-${nombre}">⚪ Blanco</label>
-
-        <input type="radio" class="btn-check" name="equipo-${nombre}" id="eqB-${nombre}" value="B">
-        <label class="btn btn-outline-danger" for="eqB-${nombre}">🔴 Rojo</label>
-      </div>
-
-      <button class="btn btn-warning btn-sm" onclick="resetJugador('${nombre}')">❌</button>
-    `;
-
-    div.querySelectorAll("input").forEach(inp =>
-      inp.addEventListener("change",()=> actualizarCampo(nombre))
-    );
-
-    cont.appendChild(div);
-
-    // 3. Restaurar estado si existía
-    if(estado[nombre]){
-      if(estado[nombre].rol){
-        document.querySelector(`input[name="rol-${nombre}"][value="${estado[nombre].rol}"]`).checked = true;
-      }
-      if(estado[nombre].eq){
-        document.querySelector(`input[name="equipo-${nombre}"][value="${estado[nombre].eq}"]`).checked = true;
-      }
+  /* ================================
+            CARGAR JUGADORES
+  ==================================*/
+  async function cargarJugadores() {
+    try {
+      const querySnapshot = await getDocs(collection(db, "jugadores"));
+      jugadoresBD = querySnapshot.docs.map(d => ({
+        id: d.id,
+        nombre: d.data().nombre
+      }));
+      renderLista();
+    } catch (err) {
+      console.error("Error cargando jugadores:", err);
     }
-  });
-}
-const inputNombre = document.getElementById("inputNombre");
-const btnAddJugador = document.getElementById("btnAddJugador");
-
-/* Limpieza */
-function quitarDeReservas(nom){
-  document.querySelectorAll("#listaReservas li").forEach(li=>{
-    if(li.textContent.includes(nom)) li.remove();
-  });
-}
-function quitarDelCampo(nom){
-  [...posicionesA, ...posicionesB].forEach(pos=>{
-    const el=document.getElementById(pos);
-    if(el.textContent.includes(nom)){
-      el.textContent=pos;
-      if(pos.endsWith("A") || pos.includes("A")) ocupadasA--;
-      else ocupadasB--;
-    }
-  });
-}
-
-/* Colocar jugador */
-function actualizarCampo(nom){
-  const rol = document.querySelector(`input[name="rol-${nom}"]:checked`);
-  const eq  = document.querySelector(`input[name="equipo-${nom}"]:checked`);
-  if(!rol) return;
-
-  quitarDeReservas(nom);
-  quitarDelCampo(nom);
-
-  if(rol.value==="titular" && eq){
-    const arr = eq.value==="A" ? posicionesA : posicionesB;
-    const occ = eq.value==="A" ? ocupadasA : ocupadasB;
-
-    if(occ < arr.length){
-      const pos = arr[occ];
-      document.getElementById(pos).innerHTML =
-        `${nom} <button class="btn btn-danger btn-sm" onclick="quitarDelCampo('${nom}')">❌</button>`;
-      if(eq.value==="A") ocupadasA++; else ocupadasB++;
-    } else {
-      alert("Ya hay 5 titulares en este equipo");
-    }
-  } 
-  // 🔑 Solo añadir si el rol es reserva
-  else if(rol.value==="reserva") {
-    const li=document.createElement("li");
-    li.className="list-group-item d-flex justify-content-between";
-    li.innerHTML=`${nom}<button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">❌</button>`;
-    listaReservas.appendChild(li);
   }
-}
+
+  async function addJugador(nombre) {
+    await addDoc(collection(db, "jugadores"), { nombre });
+    cargarJugadores();
+  }
+
+  async function removeJugador(id) {
+    await deleteDoc(doc(db, "jugadores", id));
+    cargarJugadores();
+  }
+
+  window.removeJugador = removeJugador; // Hacer accesible globalmente
+
+  /* ================================
+              RENDER LISTA
+  ==================================*/
+  function renderLista() {
+    const cont = document.getElementById("listaJugadores");
+    cont.innerHTML = "";
+
+    jugadoresBD.forEach(jugador => {
+      const div = document.createElement("div");
+      div.className = "jugador-row";
+
+      div.innerHTML = `
+        <div class="jugador-nombre">${jugador.nombre}</div>
+
+        <div class="btn-group">
+          <input type="radio" class="btn-check" name="rol-${jugador.id}" id="tit-${jugador.id}" value="titular">
+          <label class="btn btn-outline-success" for="tit-${jugador.id}">Titular</label>
+
+          <input type="radio" class="btn-check" name="rol-${jugador.id}" id="res-${jugador.id}" value="reserva">
+          <label class="btn btn-outline-secondary" for="res-${jugador.id}">Reserva</label>
+        </div>
+
+        <div class="btn-group">
+          <input type="radio" class="btn-check" name="equipo-${jugador.id}" id="eqA-${jugador.id}" value="A">
+          <label class="btn btn-outline-dark" for="eqA-${jugador.id}">⚪ Blanco</label>
+
+          <input type="radio" class="btn-check" name="equipo-${jugador.id}" id="eqB-${jugador.id}" value="B">
+          <label class="btn btn-outline-danger" for="eqB-${jugador.id}">🔴 Rojo</label>
+        </div>
+
+        <button class="btn btn-warning btn-sm" onclick="removeJugador('${jugador.id}')">❌</button>
+        <button class="btn btn-secondary btn-sm" onclick="resetJugador('${jugador.id}','${jugador.nombre}')">🔄</button>
 
 
-/* Añadir jugador */
-btnAddJugador.onclick=()=>{
-  const nom=inputNombre.value.trim();
-  if(!nom) return;
-  jugadoresBD.push(nom);
-  inputNombre.value="";
-  renderLista();
-};
+      `;
 
-/* Reset individual */
-function resetJugador(nom){
-  document.querySelectorAll(`input[name="rol-${nom}"]`).forEach(r=>r.checked=false);
-  document.querySelectorAll(`input[name="equipo-${nom}"]`).forEach(r=>r.checked=false);
-  quitarDeReservas(nom);
-  quitarDelCampo(nom);
-}
+      // Eventos
+      div.querySelectorAll("input").forEach(inp => {
+        inp.addEventListener("change", () => actualizarCampo(jugador));
+      });
 
-/* Exportar */
-function exportarImagen(){
-  html2canvas(document.getElementById("contenedorCampo")).then(canvas=>{
-    const link=document.createElement("a");
-    link.download="alineacion.png";
-    link.href=canvas.toDataURL();
-    link.click();
-  });
-}
+      cont.appendChild(div);
+    });
+  }
 
-/* Copiar lista con colores y en vertical */
-function copiarLista(){
-  let titularesA=[], titularesB=[];
+  /* ================================
+          AÑADIR JUGADOR
+  ==================================*/
+  btnAddJugador.onclick = () => {
+    const nom = inputNombre.value.trim();
+    if (!nom) return;
+    addJugador(nom);
+    inputNombre.value = "";
+  };
 
-  posicionesA.forEach(pos=>{
-    const t=document.getElementById(pos).textContent;
-    if(!t.includes(pos)) {
-      titularesA.push(t.replace("❌","").trim() + " ⚪");
+  /* ================================
+            ACTUALIZAR CAMPO
+     (MISMA LÓGICA QUE TENÍAS)
+  ==================================*/
+  function actualizarCampo(jugador) {
+    const nom = jugador.nombre;
+    const rol = document.querySelector(`input[name="rol-${jugador.id}"]:checked`);
+    const eq  = document.querySelector(`input[name="equipo-${jugador.id}"]:checked`);
+    if(!rol) return;
+
+    quitarDeReservas(nom);
+    quitarDelCampo(nom);
+
+    if(rol.value==="titular" && eq){
+      const arr = eq.value==="A" ? posicionesA : posicionesB;
+      const occ = eq.value==="A" ? ocupadasA : ocupadasB;
+
+      if(occ < arr.length){
+        const pos = arr[occ];
+        document.getElementById(pos).innerHTML = nom;
+        if(eq.value==="A") ocupadasA++; else ocupadasB++;
+      } 
+      else alert("Ya hay 5 titulares en este equipo");
+    } 
+    else if(rol.value==="reserva") {
+      const li=document.createElement("li");
+      li.className="list-group-item d-flex justify-content-between";
+      li.innerHTML=`${nom}<button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">❌</button>`;
+      listaReservas.appendChild(li);
     }
-  });
+  }
 
-  posicionesB.forEach(pos=>{
-    const t=document.getElementById(pos).textContent;
-    if(!t.includes(pos)) {
-      titularesB.push(t.replace("❌","").trim() + " 🔴");
-    }
-  });
+  function quitarDeReservas(nom){
+    document.querySelectorAll("#listaReservas li").forEach(li=>{
+      if(li.textContent.includes(nom)) li.remove();
+    });
+  }
 
-  let reservas=[];
-  document.querySelectorAll("#listaReservas li").forEach(li=>
-    reservas.push(li.textContent.replace("❌","").trim())
-  );
+  function quitarDelCampo(nom){
+    [...posicionesA, ...posicionesB].forEach(pos=>{
+      const el=document.getElementById(pos);
+      if(el.textContent.includes(nom)){
+        el.textContent = pos;
+        if(pos.includes("A")) ocupadasA--; else ocupadasB--;
+      }
+    });
+  }
 
-  navigator.clipboard.writeText(
-    "Titulares Equipo A:\n"+titularesA.join("\n")+"\n\n"+
-    "Titulares Equipo B:\n"+titularesB.join("\n")+"\n\n"+
-    "Reservas:\n"+reservas.join("\n")
-  );
+  /* ================================
+         EXPORTAR IMAGEN
+  ==================================*/
+  window.exportarImagen = function(){
+    html2canvas(document.getElementById("contenedorCampo")).then(canvas=>{
+      const link=document.createElement("a");
+      link.download="alineacion.jpg";
+      link.href=canvas.toDataURL("image/jpeg",0.9);
+      link.click();
+    });
+  }
+
+  /* ================================
+            COPIAR LISTA
+  ==================================*/
+  window.copiarLista = function(){
+    let titularesA=[], titularesB=[], reservas=[];
+
+    posicionesA.forEach(pos=>{
+      const t=document.getElementById(pos).textContent;
+      if(!t.includes(pos)) titularesA.push(t + " ⚪");
+    });
+    posicionesB.forEach(pos=>{
+      const t=document.getElementById(pos).textContent;
+      if(!t.includes(pos)) titularesB.push(t + " 🔴");
+    });
+
+    document.querySelectorAll("#listaReservas li").forEach(li=>{
+      reservas.push(li.textContent.replace("❌","").trim());
+    });
+
+    navigator.clipboard.writeText(
+      "Titulares Equipo A:\n"+titularesA.join("\n")+"\n\n"+
+      "Titulares Equipo B:\n"+titularesB.join("\n")+"\n\n"+
+      "Reservas:\n"+reservas.join("\n")
+    );
+  };
+    /* ================================
+            RESET JUGADOR*/
+function resetJugador(id, nombre) {
+    // Quitar selección de ROL
+    document.querySelectorAll(`input[name="rol-${id}"]`).forEach(r => r.checked = false);
+
+    // Quitar selección de EQUIPO
+    document.querySelectorAll(`input[name="equipo-${id}"]`).forEach(r => r.checked = false);
+
+    // Sacarlo del campo si estaba colocado
+    quitarDelCampo(nombre);
+
+    // Quitar reservas si estaba como reserva
+    quitarDeReservas(nombre);
 }
 
-renderLista();
+window.resetJugador = resetJugador; // Hacer accesible globalmente
+  /* ================================
+                 INICIO
+  ==================================*/
+  cargarJugadores();
+
 </script>
 </body>
 </html>
