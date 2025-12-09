@@ -86,7 +86,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, setDoc,doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDA_FDkrsAxtBt5_BhRgRkq3NNq3Lt7xdo",
@@ -103,25 +103,30 @@
 
     // Guardar resultado en colección "resultados"
     async function guardarResultado() {
-      const fecha = document.getElementById("fechaInput").value;
-      const resultado = document.getElementById("resultadoInput").value.trim();
+  const fecha = document.getElementById("fechaInput").value;
+  const resultado = document.getElementById("resultadoInput").value.trim();
 
-      if (!fecha || !resultado) {
-        alert("Por favor, introduce fecha y resultado.");
-        return;
-      }
+  if (!fecha || !resultado) {
+    alert("Por favor, introduce fecha y resultado.");
+    return;
+  }
 
-      try {
-        await addDoc(collection(db, "resultados"), {
-          resultado: resultado,
-          fecha: fecha
-        });
-        alert("✅ Resultado guardado en Firebase.");
-      } catch (e) {
-        console.error("Error al guardar en Firebase: ", e);
-        alert("❌ No se pudo guardar en Firebase.");
-      }
-    }
+  try {
+    const docRef = doc(db, "resultados", fecha);
+
+    // setDoc sobrescribe por defecto si el documento ya existe
+    await setDoc(docRef, {
+      resultado: resultado,
+      fecha: fecha
+    });
+
+    alert("✅ Resultado guardado (sobrescrito si ya existía).");
+    
+  } catch (e) {
+    console.error("Error al guardar en Firebase: ", e);
+    alert("❌ No se pudo guardar en Firebase.");
+  }
+}
 
     // Mostrar historial combinando alineaciones y resultados por fecha
     async function mostrarHistorialPorFecha() {
@@ -184,22 +189,60 @@
   </script>
 </head>
 <body>
-  <div class="container">
-    <h2>Guardar Resultado</h2>
-    <label for="fechaInput">📅 Fecha:</label>
-    <input type="date" id="fechaInput">
+<div class="container py-4">
 
-    <label for="resultadoInput">⚽ Resultado:</label>
-    <input type="text" id="resultadoInput" placeholder="Ej: 3-2">
-
-    <button id="guardarBtn">💾 Guardar Resultado</button>
-
-    <label for="fechaHistorial">📅 Selecciona una fecha:</label>
-    <input type="date" id="fechaHistorial">
-    <button id="historialBtn">📜 Ver Historial</button>
-
-    <div id="historial"></div>
+  <!-- Encabezado -->
+  <div class="text-center mb-4">
+    <h1 class="h3">Convocatoria Futbito</h1>
+    <p class="text-muted">Miércoles de futbito !!</p>
+    <a href="index.html" class="btn btn-primary btn-lg">
+      Ir a Alineaciones
+    </a>
   </div>
+
+  <!-- Card para guardar resultado -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Guardar Resultado</h2>
+
+      <div class="mb-3">
+        <label for="fechaInput" class="form-label">📅 Fecha</label>
+        <input type="date" id="fechaInput" class="form-control">
+      </div>
+
+      <div class="mb-3">
+        <label for="resultadoInput" class="form-label">⚽ Resultado</label>
+        <input type="text" id="resultadoInput" class="form-control" placeholder="Ej: 3-2">
+      </div>
+
+      <div class="d-grid mb-3">
+        <button id="guardarBtn" class="btn btn-primary">
+          💾 Guardar Resultado
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card para historial -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Historial</h2>
+
+      <div class="mb-3">
+        <label for="fechaHistorial" class="form-label">📅 Selecciona una fecha</label>
+        <input type="date" id="fechaHistorial" class="form-control">
+      </div>
+
+      <div class="d-grid mb-3">
+        <button id="historialBtn" class="btn btn-info">
+          📜 Ver Historial
+        </button>
+      </div>
+
+      <div id="historial" class="mt-3"></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 

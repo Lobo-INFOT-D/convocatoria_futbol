@@ -101,8 +101,15 @@
 <body>
 <div class="container py-4">
 
-  <h1 class="h3 text-center">Convocatoria Futbito</h1>
-  <p class="text-center small-muted">Miercoles de futbito !!</p>
+  <div class="container py-4 text-center">
+  <h1 class="h3 mb-3">Convocatoria Futbito</h1>
+  <p class="text-muted mb-4">Miércoles de futbito !!</p>
+
+  <!-- Botón con estilo Bootstrap -->
+  <a href="resultado.html" class="btn btn-success btn-lg mb-4">
+    Ir a Resultados
+  </a>
+</div>
 
   <!-- ===== LISTA ===== -->
   <div class="card mb-4">
@@ -152,11 +159,22 @@
   </div>
 
   <!-- ===== BOTONES ===== -->
-  <div class="mt-3 text-center">
-    <button class="btn btn-success me-2" id="btnExport">📸 Exportar imagen</button>
-    <button class="btn btn-info" id="btnCopiar">📋 Copiar lista</button>
-    <button class="btn btn-primary ms-2" id="btnAlineacion">💾 Guardar alineación</button>
-    <input type="date" id="fechaInput">
+  <div class="card shadow-sm">
+    <div class="card-body text-center">
+      <h5 class="card-title mb-3">Acciones</h5>
+
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <button class="btn btn-success flex-fill" id="btnExport">📸 Exportar imagen</button>
+        <button class="btn btn-info flex-fill" id="btnCopiar">📋 Copiar lista</button>
+        <button class="btn btn-primary flex-fill" id="btnAlineacion">💾 Guardar alineación</button>
+      </div>
+
+      <div class="mt-3">
+        <label for="fechaInput" class="form-label">📅 Fecha del partido</label>
+        <input type="date" id="fechaInput" class="form-control mx-auto" style="max-width:250px;">
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Firebase SDK & App (module) -->
@@ -165,7 +183,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
   import { 
-    getFirestore, collection, addDoc, deleteDoc, doc, getDocs 
+    getFirestore, collection, addDoc, deleteDoc, doc, getDocs, setDoc 
   } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
   // ---------- CONFIG FIREBASE (mantén la tuya) ----------
@@ -504,24 +522,30 @@ async function guardarAlineacion() {
     "\n\n⚫ *Equipo B (Negros)*\n" + (titularesB.length ? "• " + titularesB.join("\n• ") : "—") +
     "\n\n🔁 *Reservas*\n" + (reservas.length ? "• " + reservas.join("\n• ") : "—");
 
-  navigator.clipboard.writeText(texto)
+  navigator.clipboard.writeText(texto);
 
-  // Guardar en Firebase
+  // Guardar en Firebase con fecha como ID
   try {
-    await addDoc(collection(db, "alineaciones"), {
-      TitularesA: titularesA,   // 🔹 array con nombres del equipo A
-      TitularesB: titularesB,   // 🔹 array con nombres del equipo B
-      reservas: reservas,       // 🔹 array con reservas
-      fecha: fecha || ""        // 🔹 fecha como string
+    const docRefe = doc(db, "alineaciones", fecha);
+
+    // ✅ setDoc sobrescribe si ya existe el mismo ID (fecha)
+    await setDoc(docRefe, {
+      TitularesA: titularesA,
+      TitularesB: titularesB,
+      reservas: reservas,
+      fecha: fecha,
+      resultado: null
     });
-    alert("Alineación guardada en Firebase.");
+
+    alert("✅ Alineación guardada en Firebase (única por fecha, sobrescrita si ya existía).");
   } catch (e) {
     console.error("Error al guardar en Firebase: ", e);
-    alert("No se pudo guardar en Firebase.");
+    alert("❌ No se pudo guardar en Firebase.");
   }
 }
 
 window.guardarAlineacion = guardarAlineacion;
+
 
 
   // ---------- EXPORTAR IMAGEN (más nítida) ----------
