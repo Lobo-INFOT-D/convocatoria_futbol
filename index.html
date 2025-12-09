@@ -132,7 +132,7 @@
       <div id="defensaA1" class="jugador-campo equipoA" data-placeholder="Def A1">Def A1</div>
       <div id="defensaA2" class="jugador-campo equipoA" data-placeholder="Def A2">Def A2</div>
       <div id="alaA" class="jugador-campo equipoA" data-placeholder="Ala A">Ala A</div>
-      <div id="extraA" class="jugador-campo equipoA" data-placeholder="Extra A">Ala A</div>
+      <div id="extraA" class="jugador-campo equipoA" data-placeholder="pivot A">pivot A</div>
 
       <!-- Equipo B -->
       <div id="porteroB" class="jugador-campo equipoB" data-placeholder="Portero B">Portero B</div>
@@ -155,7 +155,8 @@
   <div class="mt-3 text-center">
     <button class="btn btn-success me-2" id="btnExport">📸 Exportar imagen</button>
     <button class="btn btn-info" id="btnCopiar">📋 Copiar lista</button>
-  </div>
+    <button class="btn btn-primary ms-2" id="btnAlineacion">💾 Guardar alineación</button>
+    <input type="date" id="fechaInput">
 </div>
 
 <!-- Firebase SDK & App (module) -->
@@ -457,7 +458,7 @@ window.resetJugador = resetJugador;
     });
     posiciones.B.forEach(pos => {
       const el = document.getElementById(pos);
-      if (el && el.textContent.trim() !== placeholderOf(el)) titularesB.push(el.textContent.trim() + " 🔴");
+      if (el && el.textContent.trim() !== placeholderOf(el)) titularesB.push(el.textContent.trim() + " ⚫🔴");
     });
 
     [...listaReservas.children].forEach(li => reservas.push(li.dataset.nombre));
@@ -474,6 +475,56 @@ window.resetJugador = resetJugador;
     });
   }
   window.copiarLista = copiarLista;
+  // ---------- GUARDAR ALINEACIÓN ----------
+async function guardarAlineacion() {
+  let titularesA = [], titularesB = [], reservas = [];
+  const fecha = document.getElementById("fechaInput").value;
+
+  // Recoger titulares del equipo A
+  posiciones.A.forEach(pos => {
+    const el = document.getElementById(pos);
+    if (el && el.textContent.trim() !== placeholderOf(el))
+      titularesA.push(el.textContent.trim());
+  });
+
+  // Recoger titulares del equipo B
+  posiciones.B.forEach(pos => {
+    const el = document.getElementById(pos);
+    if (el && el.textContent.trim() !== placeholderOf(el))
+      titularesB.push(el.textContent.trim());
+  });
+
+  // Recoger reservas
+  [...listaReservas.children].forEach(li => reservas.push(li.dataset.nombre));
+
+  // Texto para copiar al portapapeles
+  const texto =
+    "📅 *Fecha:* " + (fecha || "—") +
+    "\n\n⚪ *Equipo A (Blancos)*\n" + (titularesA.length ? "• " + titularesA.join("\n• ") : "—") +
+    "\n\n⚫ *Equipo B (Negros)*\n" + (titularesB.length ? "• " + titularesB.join("\n• ") : "—") +
+    "\n\n🔁 *Reservas*\n" + (reservas.length ? "• " + reservas.join("\n• ") : "—");
+
+  navigator.clipboard.writeText(texto)
+    .then(() => alert("Alineación copiada al portapapeles."))
+    .catch(() => alert("No se pudo copiar automáticamente."));
+
+  // Guardar en Firebase
+  try {
+    await addDoc(collection(db, "alineaciones"), {
+      TitularesA: titularesA,   // 🔹 array con nombres del equipo A
+      TitularesB: titularesB,   // 🔹 array con nombres del equipo B
+      reservas: reservas,       // 🔹 array con reservas
+      fecha: fecha || ""        // 🔹 fecha como string
+    });
+    alert("Alineación guardada en Firebase.");
+  } catch (e) {
+    console.error("Error al guardar en Firebase: ", e);
+    alert("No se pudo guardar en Firebase.");
+  }
+}
+
+window.guardarAlineacion = guardarAlineacion;
+
 
   // ---------- EXPORTAR IMAGEN (más nítida) ----------
   function exportarImagen() {
@@ -504,6 +555,8 @@ window.resetJugador = resetJugador;
 
   btnExport.addEventListener("click", exportarImagen);
   btnCopiar.addEventListener("click", copiarLista);
+  btnAlineacion.addEventListener("click", guardarAlineacion);
+
 
   // ---------- INICIALIZACIÓN ----------
   // Inicializamos placeholders en el campo (por si el HTML se modifica)
