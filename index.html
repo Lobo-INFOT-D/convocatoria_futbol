@@ -288,6 +288,14 @@
     listaReservas.appendChild(li);
   }
 
+// Quitar jugador de cualquier parte de la alineación
+function quitarJugadorDeAlineacion(nombre) {
+  alineacion.titularesA = alineacion.titularesA.filter(t => t.nombre !== nombre);
+  alineacion.titularesB = alineacion.titularesB.filter(t => t.nombre !== nombre);
+  alineacion.reservas = alineacion.reservas.filter(r => r !== nombre);
+}
+
+
   // ---------- FIRESTORE: CARGAR INICIAL ----------
   async function cargarJugadores() {
     try {
@@ -476,7 +484,7 @@ window.resetJugador = resetJugador;
     });
     posiciones.B.forEach(pos => {
       const el = document.getElementById(pos);
-      if (el && el.textContent.trim() !== placeholderOf(el)) titularesB.push(el.textContent.trim() + " ⚫🔴");
+      if (el && el.textContent.trim() !== placeholderOf(el)) titularesB.push(el.textContent.trim() + " ⚫");
     });
 
     [...listaReservas.children].forEach(li => reservas.push(li.dataset.nombre));
