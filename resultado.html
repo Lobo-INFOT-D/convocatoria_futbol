@@ -115,7 +115,6 @@
         await addDoc(collection(db, "resultados"), {
           resultado: resultado,
           fecha: fecha
-          
         });
         alert("✅ Resultado guardado en Firebase.");
       } catch (e) {
@@ -179,7 +178,9 @@
       }
     }
 
-    window.mostrarHistorialPorFecha = mostrarHistorialPorFecha;
+    // Asignar eventos a los botones
+    document.getElementById("guardarBtn").addEventListener("click", guardarResultado);
+    document.getElementById("historialBtn").addEventListener("click", mostrarHistorialPorFecha);
   </script>
 </head>
 <body>
@@ -191,12 +192,14 @@
     <label for="resultadoInput">⚽ Resultado:</label>
     <input type="text" id="resultadoInput" placeholder="Ej: 3-2">
 
-    <button onclick="guardarResultado()">💾 Guardar Resultado</button>
+    <button id="guardarBtn">💾 Guardar Resultado</button>
+
     <label for="fechaHistorial">📅 Selecciona una fecha:</label>
     <input type="date" id="fechaHistorial">
-    <button onclick="mostrarHistorial()">📜 Ver Historial</button>
+    <button id="historialBtn">📜 Ver Historial</button>
 
     <div id="historial"></div>
   </div>
 </body>
 </html>
+
