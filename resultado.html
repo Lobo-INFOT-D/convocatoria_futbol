@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Guardar Alineación y Resultado</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 400px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin: 0.5rem 0 0.2rem;
+      font-weight: bold;
+      color: #555;
+      text-align: left;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    input:focus {
+      border-color: #007bff;
+      outline: none;
+      box-shadow: 0 0 5px rgba(0,123,255,0.3);
+    }
+
+    button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 0.8rem 1.2rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .card {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-top: 1rem;
+      text-align: left;
+    }
+
+    .card h3 {
+      margin: 0 0 0.5rem;
+      color: #007bff;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDA_FDkrsAxtBt5_BhRgRkq3NNq3Lt7xdo",
+      authDomain: "convocatoria-8c340.firebaseapp.com",
+      projectId: "convocatoria-8c340",
+      storageBucket: "convocatoria-8c340.firebasestorage.app",
+      messagingSenderId: "968350738606",
+      appId: "1:968350738606:web:bdff77002fe19077a7a53f",
+      measurementId: "G-ZV9MG4T1FF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Guardar resultado en colección "resultados"
+    async function guardarResultado() {
+      const fecha = document.getElementById("fechaInput").value;
+      const resultado = document.getElementById("resultadoInput").value.trim();
+
+      if (!fecha || !resultado) {
+        alert("Por favor, introduce fecha y resultado.");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "resultados"), {
+          resultado: resultado,
+          fecha: fecha
+          
+        });
+        alert("✅ Resultado guardado en Firebase.");
+      } catch (e) {
+        console.error("Error al guardar en Firebase: ", e);
+        alert("❌ No se pudo guardar en Firebase.");
+      }
+    }
+
+    // Mostrar historial combinando alineaciones y resultados por fecha
+    async function mostrarHistorialPorFecha() {
+      const fechaSeleccionada = document.getElementById("fechaHistorial").value;
+      const historialDiv = document.getElementById("historial");
+
+      if (!fechaSeleccionada) {
+        alert("Por favor, selecciona una fecha.");
+        return;
+      }
+
+      historialDiv.innerHTML = "<h3>Cargando historial...</h3>";
+
+      try {
+        const alineacionesSnap = await getDocs(collection(db, "alineaciones"));
+        const resultadosSnap = await getDocs(collection(db, "resultados"));
+
+        // Crear mapas por fecha
+        const alineacionesMap = {};
+        alineacionesSnap.forEach(doc => {
+          const data = doc.data();
+          alineacionesMap[data.fecha] = data;
+        });
+
+        const resultadosMap = {};
+        resultadosSnap.forEach(doc => {
+          const data = doc.data();
+          resultadosMap[data.fecha] = data.resultado;
+        });
+
+        historialDiv.innerHTML = "";
+
+        // Buscar solo la fecha seleccionada
+        const alineacion = alineacionesMap[fechaSeleccionada];
+        const resultado = resultadosMap[fechaSeleccionada] || "—";
+
+        if (alineacion) {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h3>📅 ${fechaSeleccionada}</h3>
+            <p><strong>⚪ Equipo A:</strong> ${alineacion.TitularesA?.join(", ") || "—"}</p>
+            <p><strong>⚫ Equipo B:</strong> ${alineacion.TitularesB?.join(", ") || "—"}</p>
+            <p><strong>🔁 Reservas:</strong> ${alineacion.reservas?.join(", ") || "—"}</p>
+            <p><strong>🏆 Resultado:</strong> ${resultado}</p>
+          `;
+          historialDiv.appendChild(card);
+        } else {
+          historialDiv.innerHTML = "<p>No hay alineación registrada para esa fecha.</p>";
+        }
+      } catch (e) {
+        console.error("Error al obtener historial: ", e);
+        historialDiv.innerHTML = "<p>No se pudo cargar el historial.</p>";
+      }
+    }
+
+    window.mostrarHistorialPorFecha = mostrarHistorialPorFecha;
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h2>Guardar Resultado</h2>
+    <label for="fechaInput">📅 Fecha:</label>
+    <input type="date" id="fechaInput">
+
+    <label for="resultadoInput">⚽ Resultado:</label>
+    <input type="text" id="resultadoInput" placeholder="Ej: 3-2">
+
+    <button onclick="guardarResultado()">💾 Guardar Resultado</button>
+    <label for="fechaHistorial">📅 Selecciona una fecha:</label>
+    <input type="date" id="fechaHistorial">
+    <button onclick="mostrarHistorial()">📜 Ver Historial</button>
+
+    <div id="historial"></div>
+  </div>
+</body>
+</html>

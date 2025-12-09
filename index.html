@@ -505,8 +505,6 @@ async function guardarAlineacion() {
     "\n\n🔁 *Reservas*\n" + (reservas.length ? "• " + reservas.join("\n• ") : "—");
 
   navigator.clipboard.writeText(texto)
-    .then(() => alert("Alineación copiada al portapapeles."))
-    .catch(() => alert("No se pudo copiar automáticamente."));
 
   // Guardar en Firebase
   try {
