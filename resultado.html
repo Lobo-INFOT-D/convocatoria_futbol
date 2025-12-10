@@ -129,59 +129,72 @@
 }
 
     // Mostrar historial combinando alineaciones y resultados por fecha
-    async function mostrarHistorialPorFecha() {
-      const fechaSeleccionada = document.getElementById("fechaHistorial").value;
-      const historialDiv = document.getElementById("historial");
+    // Mostrar historial en rango de fechas
+async function mostrarHistorialPorRango() {
+  const fechaInicio = document.getElementById("fechaInicio").value;
+  const fechaFin = document.getElementById("fechaFin").value;
+  const historialDiv = document.getElementById("historial");
 
-      if (!fechaSeleccionada) {
-        alert("Por favor, selecciona una fecha.");
-        return;
-      }
+  if (!fechaInicio || !fechaFin) {
+    alert("Por favor, selecciona fecha inicio y fecha fin.");
+    return;
+  }
 
-      historialDiv.innerHTML = "<h3>Cargando historial...</h3>";
+  historialDiv.innerHTML = "<h3>Cargando historial...</h3>";
 
-      try {
-        const alineacionesSnap = await getDocs(collection(db, "alineaciones"));
-        const resultadosSnap = await getDocs(collection(db, "resultados"));
+  try {
+    const alineacionesSnap = await getDocs(collection(db, "alineaciones"));
+    const resultadosSnap = await getDocs(collection(db, "resultados"));
 
-        // Crear mapas por fecha
-        const alineacionesMap = {};
-        alineacionesSnap.forEach(doc => {
-          const data = doc.data();
-          alineacionesMap[data.fecha] = data;
-        });
+    // Crear mapas por fecha
+    const alineacionesMap = {};
+    alineacionesSnap.forEach(doc => {
+      const data = doc.data();
+      alineacionesMap[data.fecha] = data;
+    });
 
-        const resultadosMap = {};
-        resultadosSnap.forEach(doc => {
-          const data = doc.data();
-          resultadosMap[data.fecha] = data.resultado;
-        });
+    const resultadosMap = {};
+    resultadosSnap.forEach(doc => {
+      const data = doc.data();
+      resultadosMap[data.fecha] = data.resultado;
+    });
 
-        historialDiv.innerHTML = "";
+    historialDiv.innerHTML = "";
 
-        // Buscar solo la fecha seleccionada
-        const alineacion = alineacionesMap[fechaSeleccionada];
-        const resultado = resultadosMap[fechaSeleccionada] || "—";
+    // Filtrar fechas dentro del rango
+    const fechas = Object.keys(alineacionesMap)
+      .filter(f => f >= fechaInicio && f <= fechaFin)
+      .sort();
 
-        if (alineacion) {
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `
-            <h3>📅 ${fechaSeleccionada}</h3>
-            <p><strong>⚪ Equipo A:</strong> ${alineacion.TitularesA?.join(", ") || "—"}</p>
-            <p><strong>⚫ Equipo B:</strong> ${alineacion.TitularesB?.join(", ") || "—"}</p>
-            <p><strong>🔁 Reservas:</strong> ${alineacion.reservas?.join(", ") || "—"}</p>
-            <p><strong>🏆 Resultado:</strong> ${resultado}</p>
-          `;
-          historialDiv.appendChild(card);
-        } else {
-          historialDiv.innerHTML = "<p>No hay alineación registrada para esa fecha.</p>";
-        }
-      } catch (e) {
-        console.error("Error al obtener historial: ", e);
-        historialDiv.innerHTML = "<p>No se pudo cargar el historial.</p>";
-      }
+    if (fechas.length === 0) {
+      historialDiv.innerHTML = "<p>No hay registros en ese rango.</p>";
+      return;
     }
+
+    fechas.forEach(fecha => {
+      const alineacion = alineacionesMap[fecha];
+      const resultado = resultadosMap[fecha] || "—";
+
+      const card = document.createElement("div");
+      card.className = "card mb-3";
+      card.innerHTML = `
+        <h3>📅 ${fecha}</h3>
+        <p><strong>⚪ Equipo A:</strong> ${alineacion.TitularesA?.join(", ") || "—"}</p>
+        <p><strong>⚫ Equipo B:</strong> ${alineacion.TitularesB?.join(", ") || "—"}</p>
+        <p><strong>🔁 Reservas:</strong> ${alineacion.reservas?.join(", ") || "—"}</p>
+        <p><strong>🏆 Resultado:</strong> ${resultado}</p>
+      `;
+      historialDiv.appendChild(card);
+    });
+  } catch (e) {
+    console.error("Error al obtener historial: ", e);
+    historialDiv.innerHTML = "<p>No se pudo cargar el historial.</p>";
+  }
+}
+
+// Asignar evento al botón
+document.getElementById("historialBtn").addEventListener("click", mostrarHistorialPorRango);
+
 
     // Asignar eventos a los botones
     document.getElementById("guardarBtn").addEventListener("click", guardarResultado);
@@ -224,23 +237,27 @@
   </div>
 
   <!-- Card para historial -->
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <h2 class="h5 mb-3">Historial</h2>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h2 class="h5 mb-3">Historial</h2>
 
-      <div class="mb-3">
-        <label for="fechaHistorial" class="form-label">📅 Selecciona una fecha</label>
-        <input type="date" id="fechaHistorial" class="form-control">
-      </div>
-
-      <div class="d-grid mb-3">
-        <button id="historialBtn" class="btn btn-info">
-          📜 Ver Historial
-        </button>
-      </div>
-
-      <div id="historial" class="mt-3"></div>
+    <div class="mb-3">
+      <label for="fechaInicio" class="form-label">📅 Fecha inicio</label>
+      <input type="date" id="fechaInicio" class="form-control">
     </div>
+
+    <div class="mb-3">
+      <label for="fechaFin" class="form-label">📅 Fecha fin</label>
+      <input type="date" id="fechaFin" class="form-control">
+    </div>
+
+    <div class="d-grid mb-3">
+      <button id="historialBtn" class="btn btn-info">
+        📜 Ver Historial
+      </button>
+    </div>
+
+    <div id="historial" class="mt-3"></div>
   </div>
 </div>
 </body>
