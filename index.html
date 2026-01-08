@@ -62,12 +62,22 @@
     .equipoB { color:rgb(28, 43, 26); background: linear-gradient(180deg, rgba(255, 0, 0, 0.8), rgba(231, 229, 229, 0.993)); }
 
     /* POSICIONES (NO TOCAR IDs) */
+    #titulo1 {
+      position: absolute; top: 4%; left: 20%; transform: translateX(-50%);
+      color: #fff; font-weight: 700; font-size: 1.2rem; text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      background-color: #020202;
+    }
     #porteroA { left:8%; top:45%; }
     #defensaA1 { left:18%; top:25%; }
     #defensaA2 { left:18%; top:75%; }
     #alaA { left:32%; top:35%; }
     #extraA { left:32%; top:55%; }
 
+    #titulo2 {
+      position: absolute; top: 4%; right: 25%; transform: translateX(50%);
+      color: #020202; font-weight: 700; font-size: 1.2rem; text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      background-color: #fff;
+    }
     #porteroB { right: 1px; top:47%; }
     #defensaB1 { right:18%; top:25%; }
     #defensaB2 { right:18%; top:65%; }
@@ -141,6 +151,7 @@
       <div class="porteria der"></div>
 
       <!-- Equipo A -->
+      <div id="titulo1">Equipo Blanco</div>
       <div id="porteroA" class="jugador-campo equipoA" data-placeholder="Portero A">Portero A</div>
       <div id="defensaA1" class="jugador-campo equipoA" data-placeholder="Def A1">Def A1</div>
       <div id="defensaA2" class="jugador-campo equipoA" data-placeholder="Def A2">Def A2</div>
@@ -148,6 +159,7 @@
       <div id="extraA" class="jugador-campo equipoA" data-placeholder="pivot A">pivot A</div>
 
       <!-- Equipo B -->
+      <div id="titulo2">Equipo Negro</div>
       <div id="porteroB" class="jugador-campo equipoB" data-placeholder="Portero B">Portero B</div>
       <div id="defensaB1" class="jugador-campo equipoB" data-placeholder="Def B1">Def B1</div>
       <div id="defensaB2" class="jugador-campo equipoB" data-placeholder="Def B2">Def B2</div>
@@ -427,7 +439,6 @@ function quitarJugadorDeAlineacion(nombre) {
   });
 }
 
-  // ---------- LÓGICA ACTUALIZAR CAMPO ----------
   // ---------- LÓGICA ACTUALIZAR CAMPO ----------
 function actualizarCampo(jugador) {
   const rol = getRolChecked(jugador.id);
