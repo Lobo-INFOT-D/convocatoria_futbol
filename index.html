@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Alineación Fútbol Sala — Sistema Corregido</title>
+  <title>Alineación Fútbol Sala — Optimizado (Opción A)</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -14,9 +14,11 @@
     /* ===== LISTA JUGADORES ===== */
     .jugador-row {
       display:flex; align-items:center; justify-content:space-between;
-      padding:.5rem; border-bottom:1px solid #e9ecef; gap:.5rem;
+      padding:.5rem; border-bottom:1px solid #e9ecef;
+      gap:.5rem;
     }
     .jugador-nombre { flex:1; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .jugador-row .btn { margin:0 2px; padding:6px 10px; }
 
     /* ===== CAMPO ===== */
     .campo {
@@ -24,287 +26,603 @@
       aspect-ratio:2.2/1; margin:1rem auto;
       background:#2b05b4; border:4px solid #0b5130;
       border-radius:10px; overflow:hidden;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 18px rgba(10,10,10,0.08);
     }
-    .linea-central { position:absolute; inset:0 auto 0 50%; width:2px; background:rgba(255,255,255,0.4); transform:translateX(-50%); }
-    .area { position:absolute; border:2px solid rgba(255,255,255,0.2); width:18%; height:45%; top:27.5%; border-radius:8px; }
+    .linea-central { position:absolute; inset:0 auto 0 50%; width:2px; background:rgba(255,255,255,0.5); transform:translateX(-50%); }
+    .area, .porteria { position:absolute; border:2px solid rgba(255,255,255,0.25); }
+    .area { width:20%; height:40%; top:30%; border-radius:6px; background: rgba(255,255,255,0.02); }
     .area.izq { left:0; } .area.der { right:0; }
+    .porteria { width:4%; height:20%; top:40%; background:rgba(0,0,0,0.08); border-radius:4px; }
+    .porteria.izq { left:-4%; } .porteria.der { right:-4%; }
 
+    /* Jugadores en el campo */
     .jugador-campo {
-      position: absolute; min-width: 65px; padding: 6px 10px; border-radius: 8px;
-      font-weight: 700; font-size: .9rem; display: flex; align-items: center;
-      justify-content: center; color: #fff; background: rgba(0,0,0,0.3);
-      transform: translate(-50%, -50%); z-index: 10; white-space: nowrap;
-      transition: all 0.2s;
+      position: absolute;
+      min-width: 48px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: .95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #fff;
+      background: rgba(0,0,0,0.25);
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      transition: transform .18s ease, opacity .18s ease;
+      opacity: .98;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
     }
-    /* Estilos Equipos */
-    .equipoA { color:#d32f2f; background-color: #ffffff; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .equipoB { color:#ff5252; background-color: #1a1a1a; border: 1px solid #444; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+    .jugador-campo.asignado { transform: translate(-50%,-50%) scale(1.06); }
 
-    /* Coordenadas de las posiciones */
-    #porteroA  { left: 8%; top: 50%; }
-    #defensaA1 { left: 20%; top: 25%; }
-    #defensaA2 { left: 20%; top: 75%; }
-    #alaA      { left: 35%; top: 35%; }
-    #pivotA    { left: 35%; top: 65%; }
+    .equipoA { color:#e90707; background-color: rgb(252, 252, 252); }
+    .equipoB { color:rgb(236, 5, 5); background-color: #0a0909; }
 
-    #porteroB  { right: 8%; top: 50%; transform: translate(50%, -50%); }
-    #defensaB1 { right: 20%; top: 25%; transform: translate(50%, -50%); }
-    #defensaB2 { right: 20%; top: 75%; transform: translate(50%, -50%); }
-    #alaB      { right: 35%; top: 35%; transform: translate(50%, -50%); }
-    #pivotB    { right: 35%; top: 65%; transform: translate(50%, -50%); }
+    /* POSICIONES (NO TOCAR IDs) */
+    #titulo1 {
+      position: absolute; top: 4%; left: 20%; transform: translateX(-50%);
+      color: #df1212; font-weight: 700; font-size: 1.2rem; text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      background-color: #ffffff;
+      padding: 4px 8px; border-radius: 6px;
+    }
+    #porteroA { left:8%; top:45%; }
+    #defensaA1 { left:18%; top:25%; }
+    #defensaA2 { left:18%; top:75%; }
+    #alaA { left:32%; top:35%; }
+    #extraA { left:32%; top:55%; }
 
+    #titulo2 {
+      position: absolute; top: 4%; right: 25%; transform: translateX(50%);
+      color: #eb0909; font-weight: 700; font-size: 1.2rem; text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      background-color: #0e0d0d;
+      padding: 4px 8px; border-radius: 6px;
+    }
+    #porteroB { right: 1px; top:47%; }
+    #defensaB1 { right:18%; top:25%; }
+    #defensaB2 { right:18%; top:65%; }
+    #alaB { right:32%; top:35%; }
+    #pivotB { right:32%; top:55%; }
+
+    /* BOTONES EQUIPO */
+    .btn-equipoA { border:1px solid #ccc; background:#ffffff; color:#111; }
+    .btn-equipoB { border:1px solid #222; background:#111; color:#fff; }
+
+    /* Reservas list */
+    #listaReservas .list-group-item { display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
+
+    /* Móviles */
     @media (max-width:768px) {
-      .jugador-row { flex-direction: column; align-items: flex-start; }
-      .jugador-campo { font-size: 0.7rem; min-width: 50px; padding: 4px; }
+      .jugador-row { 
+        flex-direction: column; 
+        align-items: stretch;
+      }
+      .campo { aspect-ratio:1.6/1; max-width:768px; }
+      .jugador-campo { 
+        min-width: 36px; padding:4px 6px; font-size:0.75rem;
+      }
+      .jugador-campo { white-space:nowrap; max-width: 80px; overflow:hidden; text-overflow:ellipsis; }
     }
+
+    /* small niceties */
+    .small-muted { font-size:0.85rem; color:#6c757d; }
   </style>
 </head>
 <body>
 <div class="container py-4">
-  <div class="text-center mb-4">
-    <h1 class="h3">Gestión de Equipos</h1>
-    <a href="resultado.html" class="btn btn-sm btn-outline-primary">Ver Historial y Notas</a>
+
+  <div class="container py-4 text-center">
+  <h1 class="h3 mb-3">Convocatoria Futbito</h1>
+  <p class="text-muted mb-4">Miércoles de futbito !!</p>
+
+  <!-- Botón con estilo Bootstrap -->
+  <a href="resultado.html" class="btn btn-success btn-lg mb-4">
+    Ir a Resultados
+  </a>
+</div>
+
+  <!-- ===== FECHA ===== -->
+  <div class="mt-3 mb-4 text-center">
+    <label for="fechaInput" class="form-label">📅 Fecha del partido</label>
+    <input type="date" id="fechaInput" class="form-control mx-auto" style="max-width:250px;">
   </div>
 
-  <div class="card mb-4 shadow-sm">
+  <!-- ===== LISTA ===== -->
+  <div class="card mb-4">
     <div class="card-body">
-      <h5 class="card-title border-bottom pb-2">Convocatoria</h5>
+      <h2 class="h5">Lista de jugadores</h2>
       <div id="listaJugadores"></div>
-      
-      <div class="row g-2 mt-3">
-        <div class="col">
-          <input id="inputNombre" class="form-control" placeholder="Nombre del jugador...">
-        </div>
-        <div class="col-auto">
-          <button id="btnAddJugador" class="btn btn-primary">Añadir</button>
-        </div>
+
+      <div class="input-group mt-3">
+        <input id="inputNombre" class="form-control" placeholder="Añadir jugador (Enter para añadir)">
+        <button id="btnAddJugador" class="btn btn-primary">Añadir</button>
       </div>
-      
-      <div class="d-grid mt-3">
-        <button id="btnEquilibrar" class="btn btn-warning fw-bold">⚖️ Equilibrar Equipos Automáticamente</button>
-      </div>
+      <div class="mt-2 small text-muted">Marca <strong>Titular</strong> o <strong>Reserva</strong>, luego elige equipo. Titular requiere equipo.</div>
     </div>
   </div>
 
+  <!-- ===== CAMPO ===== -->
   <div id="contenedorCampo">
     <div class="campo" id="campo">
-      <div class="linea-central"></div><div class="area izq"></div><div class="area der"></div>
-      
-      <div id="porteroA"  class="jugador-campo equipoA" data-placeholder="Port-A">Port-A</div>
-      <div id="defensaA1" class="jugador-campo equipoA" data-placeholder="Def-A1">Def-A1</div>
-      <div id="defensaA2" class="jugador-campo equipoA" data-placeholder="Def-A2">Def-A2</div>
-      <div id="alaA"      class="jugador-campo equipoA" data-placeholder="Ala-A">Ala-A</div>
-      <div id="pivotA"    class="jugador-campo equipoA" data-placeholder="Pivot-A">Pivot-A</div>
+      <div class="linea-central"></div>
+      <div class="area izq"></div>
+      <div class="area der"></div>
+      <div class="porteria izq"></div>
+      <div class="porteria der"></div>
 
-      <div id="porteroB"  class="jugador-campo equipoB" data-placeholder="Port-B">Port-B</div>
-      <div id="defensaB1" class="jugador-campo equipoB" data-placeholder="Def-B1">Def-B1</div>
-      <div id="defensaB2" class="jugador-campo equipoB" data-placeholder="Def-B2">Def-B2</div>
-      <div id="alaB"      class="jugador-campo equipoB" data-placeholder="Ala-B">Ala-B</div>
-      <div id="pivotB"    class="jugador-campo equipoB" data-placeholder="Pivot-B">Pivot-B</div>
+      <!-- Equipo A -->
+      <div id="titulo1">Equipo Blanco</div>
+      <div id="porteroA" class="jugador-campo equipoA" data-placeholder="Portero A">Portero A</div>
+      <div id="defensaA1" class="jugador-campo equipoA" data-placeholder="Def A1">Def A1</div>
+      <div id="defensaA2" class="jugador-campo equipoA" data-placeholder="Def A2">Def A2</div>
+      <div id="alaA" class="jugador-campo equipoA" data-placeholder="Ala A">Ala A</div>
+      <div id="extraA" class="jugador-campo equipoA" data-placeholder="pivot A">pivot A</div>
+
+      <!-- Equipo B -->
+      <div id="titulo2">Equipo Negro</div>
+      <div id="porteroB" class="jugador-campo equipoB" data-placeholder="Portero B">Portero B</div>
+      <div id="defensaB1" class="jugador-campo equipoB" data-placeholder="Def B1">Def B1</div>
+      <div id="defensaB2" class="jugador-campo equipoB" data-placeholder="Def B2">Def B2</div>
+      <div id="alaB" class="jugador-campo equipoB" data-placeholder="Ala B">Ala B</div>
+      <div id="pivotB" class="jugador-campo equipoB" data-placeholder="Pívot B">Pívot B</div>
     </div>
   </div>
 
-  <div class="card mt-4 shadow-sm">
+  <!-- ===== RESERVAS ===== -->
+  <div class="card mt-4">
     <div class="card-body">
-      <h5 class="card-title text-secondary">Banquillo / Reservas</h5>
-      <ul id="listaReservas" class="list-group list-group-flush"></ul>
+      <h2 class="h5">Reservas</h2>
+      <ul id="listaReservas" class="list-group"></ul>
     </div>
   </div>
 
-  <div class="text-center mt-4 pb-5">
-    <div class="mb-3">
-      <label class="small text-muted">Fecha del Partido:</label>
-      <input type="date" id="fechaInput" class="form-control d-inline-block w-auto ms-2">
-    </div>
-    <div class="d-flex justify-content-center gap-2">
-      <button class="btn btn-success" id="btnExport">📸 Descargar Imagen</button>
-      <button class="btn btn-primary" id="btnAlineacion">💾 Guardar Alineación</button>
+  <!-- ===== BOTONES ===== -->
+  <div class="card shadow-sm">
+    <div class="card-body text-center">
+      <h5 class="card-title mb-3">Acciones</h5>
+
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <button class="btn btn-success flex-fill" id="btnExport">📸 Exportar imagen</button>
+        <button class="btn btn-info flex-fill" id="btnCopiar">📋 Copiar lista</button>
+        <button class="btn btn-primary flex-fill" id="btnAlineacion">💾 Guardar alineación</button>
+      </div>
+
+
     </div>
   </div>
 </div>
 
+<!-- Firebase SDK & App (module) -->
 <script type="module">
+  // ---------- FIREBASE IMPORTS ----------
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+  import { 
+    getFirestore, collection, addDoc, deleteDoc, doc, getDocs, setDoc 
+  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+  // ---------- CONFIG FIREBASE (mantén la tuya) ----------
   const firebaseConfig = {
     apiKey: "AIzaSyDA_FDkrsAxtBt5_BhRgRkq3NNq3Lt7xdo",
     authDomain: "convocatoria-8c340.firebaseapp.com",
     projectId: "convocatoria-8c340",
     storageBucket: "convocatoria-8c340.firebasestorage.app",
     messagingSenderId: "968350738606",
-    appId: "1:968350738606:web:bdff77002fe19077a7a53f"
+    appId: "1:968350738606:web:bdff77002fe19077a7a53f",
+    measurementId: "G-ZV9MG4T1FF"
   };
 
   const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
   const db = getFirestore(app);
 
+  // ---------- ESTADO / CONSTANTES ----------
   const posiciones = {
-    A: ["porteroA","defensaA1","defensaA2","alaA","pivotA"],
+    A: ["porteroA","defensaA1","defensaA2","alaA","extraA"],
     B: ["porteroB","defensaB1","defensaB2","alaB","pivotB"]
   };
-  let jugadoresBD = [];
+  let ocupadasA = 0, ocupadasB = 0;
+  let jugadoresBD = []; // { id, nombre }
 
-  async function cargarJugadores() {
-    const snap = await getDocs(collection(db, "jugadores"));
-    jugadoresBD = snap.docs.map(d => ({ id: d.id, nombre: d.data().nombre }));
-    renderLista();
+  /* Elementos DOM */
+  const inputNombre = document.getElementById("inputNombre");
+  const btnAddJugador = document.getElementById("btnAddJugador");
+  const listaJugadoresCont = document.getElementById("listaJugadores");
+  const listaReservas = document.getElementById("listaReservas");
+  const contCampo = document.getElementById("campo");
+  const btnExport = document.getElementById("btnExport");
+  const btnCopiar = document.getElementById("btnCopiar");
+
+  // ---------- UTILIDADES ----------
+  const getRolChecked = (id) => document.querySelector(`input[name="rol-${id}"]:checked`);
+  const getEquipoChecked = (id) => document.querySelector(`input[name="equipo-${id}"]:checked`);
+
+  function placeholderOf(el) {
+    return el.dataset.placeholder ?? el.id;
   }
 
-  function renderLista() {
-    const cont = document.getElementById("listaJugadores");
-    cont.innerHTML = "";
-    jugadoresBD.forEach(j => {
-      const div = document.createElement("div");
-      div.className = "jugador-row";
-      div.innerHTML = `
-        <div class="jugador-nombre">${j.nombre}</div>
-        <div class="btn-group btn-group-sm">
-          <input type="radio" class="btn-check" name="rol-${j.id}" id="tit-${j.id}" value="titular">
-          <label class="btn btn-outline-success" for="tit-${j.id}">Titular</label>
-          <input type="radio" class="btn-check" name="rol-${j.id}" id="res-${j.id}" value="reserva">
-          <label class="btn btn-outline-secondary" for="res-${j.id}">Reserva</label>
-        </div>
-        <div class="btn-group btn-group-sm ms-2">
-          <input type="radio" class="btn-check" name="eq-${j.id}" id="eqA-${j.id}" value="A">
-          <label class="btn btn-outline-dark" for="eqA-${j.id}">Blanco</label>
-          <input type="radio" class="btn-check" name="eq-${j.id}" id="eqB-${j.id}" value="B">
-          <label class="btn btn-outline-dark" for="eqB-${j.id}">Negro</label>
-        </div>
-        <button class="btn btn-sm btn-light ms-2" onclick="resetJugador('${j.id}','${j.nombre}')">🔄</button>
-      `;
-      div.querySelectorAll("input").forEach(inp => {
-        inp.addEventListener("change", () => actualizarCampo(j));
-      });
-      cont.appendChild(div);
+  function estaEnReservas(nombre) {
+    return [...listaReservas.children].some(li => li.dataset.nombre === nombre);
+  }
+
+  // recalcula ocupadas desde DOM (robusto)
+  function recalcularOcupadas() {
+    ocupadasA = posiciones.A.reduce((acc, pos) => {
+      const el = document.getElementById(pos);
+      return acc + (el && el.textContent.trim() !== placeholderOf(el) ? 1 : 0);
+    }, 0);
+    ocupadasB = posiciones.B.reduce((acc, pos) => {
+      const el = document.getElementById(pos);
+      return acc + (el && el.textContent.trim() !== placeholderOf(el) ? 1 : 0);
+    }, 0);
+  }
+
+  // Busca la primera posicion vacía para equipo (A o B). Devuelve id o null
+  function primeraPosicionLibre(equipo) {
+    for (const pos of posiciones[equipo]) {
+      const el = document.getElementById(pos);
+      if (el && el.textContent.trim() === placeholderOf(el)) return pos;
+    }
+    return null;
+  }
+
+  // Quitar a un jugador del campo (por nombre)
+  function quitarDelCampo(nombre) {
+    [...posiciones.A, ...posiciones.B].forEach(pos => {
+      const el = document.getElementById(pos);
+      if (!el) return;
+      if (el.textContent.trim() === nombre) {
+        el.textContent = placeholderOf(el);
+        // optional: remove assigned visual class
+        el.classList.remove("asignado");
+      }
+    });
+    recalcularOcupadas();
+  }
+
+  // Quitar de reservas
+  function quitarDeReservas(nombre) {
+    [...listaReservas.children].forEach(li => {
+      if (li.dataset.nombre === nombre) li.remove();
     });
   }
 
-  function actualizarCampo(j) {
-    const rol = document.querySelector(`input[name="rol-${j.id}"]:checked`)?.value;
-    const equipo = document.querySelector(`input[name="eq-${j.id}"]:checked`)?.value;
+  // Evita añadir reserva duplicada
+  function addReservaSiNoExiste(nombre) {
+    if (estaEnReservas(nombre)) return;
+    const li = document.createElement("li");
+    li.className = "list-group-item";
+    li.dataset.nombre = nombre;
+    li.innerHTML = `
+      <span class="flex-grow-1">${nombre}</span>
+      <div>
+        <button class="btn btn-sm btn-outline-danger" title="Quitar reserva">❌</button>
+      </div>
+    `;
+    li.querySelector("button").onclick = () => li.remove();
+    listaReservas.appendChild(li);
+  }
 
-    quitarDelCampo(j.nombre);
-    quitarDeReservas(j.nombre);
+// Quitar jugador de cualquier parte de la alineación
+function quitarJugadorDeAlineacion(nombre) {
+  alineacion.titularesA = alineacion.titularesA.filter(t => t.nombre !== nombre);
+  alineacion.titularesB = alineacion.titularesB.filter(t => t.nombre !== nombre);
+  alineacion.reservas = alineacion.reservas.filter(r => r !== nombre);
+}
 
-    if (rol === "titular" && equipo) {
-      const posLibre = posiciones[equipo].find(id => {
-        const el = document.getElementById(id);
-        return el.textContent.trim() === el.dataset.placeholder.trim();
-      });
 
-      if (posLibre) {
-        document.getElementById(posLibre).textContent = j.nombre;
-      } else {
-        alert("Equipo lleno (máximo 5 jugadores)");
-        // Desmarcar radio de equipo si está lleno
-        document.getElementById(`eqA-${j.id}`).checked = false;
-        document.getElementById(`eqB-${j.id}`).checked = false;
-      }
-    } else if (rol === "reserva") {
-      const li = document.createElement("li");
-      li.className = "list-group-item d-flex justify-content-between align-items-center";
-      li.innerHTML = `<span>${j.nombre}</span> <span class="badge bg-secondary rounded-pill">Banquillo</span>`;
-      document.getElementById("listaReservas").appendChild(li);
+  // ---------- FIRESTORE: CARGAR INICIAL ----------
+  async function cargarJugadores() {
+    try {
+      const snapshot = await getDocs(collection(db, "jugadores"));
+      jugadoresBD = snapshot.docs.map(d => ({ id: d.id, nombre: d.data().nombre }));
+      renderLista();
+    } catch (err) {
+      console.error("Error cargando jugadores:", err);
+      // en caso de fallo, lista queda vacía y el resto sigue funcionando
+      jugadoresBD = [];
+      renderLista();
     }
   }
 
-  function quitarDelCampo(nombre) {
-    [...posiciones.A, ...posiciones.B].forEach(id => {
-      const el = document.getElementById(id);
-      if (el.textContent.trim() === nombre.trim()) {
-        el.textContent = el.dataset.placeholder;
-      }
-    });
+  // ---------- FIRESTORE: AÑADIR / BORRAR optimizados ----------
+  async function addJugador(nombre) {
+    // trim y protección
+    nombre = nombre.trim();
+    if (!nombre) return;
+
+    // prevenir duplicados en la lista local
+    if (jugadoresBD.some(j => j.nombre.toLowerCase() === nombre.toLowerCase())) {
+      alert("Ese jugador ya está en la lista.");
+      return;
+    }
+
+    try {
+      const docRef = await addDoc(collection(db, "jugadores"), { nombre });
+      // Actualizar estado local sin recargar desde Firestore
+      jugadoresBD.push({ id: docRef.id, nombre });
+      renderLista();
+    } catch (err) {
+      console.error("Error añadiendo jugador:", err);
+      alert("No se pudo añadir el jugador. Mira la consola.");
+    }
   }
 
-  function quitarDeReservas(nombre) {
-    const lista = document.getElementById("listaReservas");
-    [...lista.children].forEach(li => {
-      if (li.textContent.includes(nombre)) li.remove();
+ async function removeJugador(id) {
+  if (!confirm("¿Eliminar jugador de la base de datos?")) return;
+
+  const jugador = jugadoresBD.find(j => j.id === id);
+  if (!jugador) return;
+
+  try {
+    await deleteDoc(doc(db, "jugadores", id));
+    // limpiar campo y reservas antes de actualizar lista
+    quitarDelCampo(jugador.nombre);
+    quitarDeReservas(jugador.nombre);
+
+    jugadoresBD = jugadoresBD.filter(j => j.id !== id);
+    renderLista();
+    recalcularOcupadas();
+  } catch (err) {
+    console.error("Error borrando jugador:", err);
+    alert("No se pudo eliminar. Revisa la consola.");
+  }
+}
+
+
+  // Exponer globalmente para onclick inline (botón delete)
+  window.removeJugador = removeJugador;
+
+  // ---------- RENDER LISTA ----------
+  function renderLista() {
+  const cont = document.getElementById("listaJugadores");
+  cont.innerHTML = "";
+
+  jugadoresBD.forEach(jugador => {
+    const div = document.createElement("div");
+    div.className = "jugador-row";
+
+    div.innerHTML = `
+      <div class="jugador-nombre">${jugador.nombre}</div>
+
+      <div class="btn-group">
+        <input type="radio" class="btn-check rol" name="rol-${jugador.id}" id="tit-${jugador.id}" value="titular">
+        <label class="btn btn-outline-success" for="tit-${jugador.id}">Titular</label>
+
+        <input type="radio" class="btn-check rol" name="rol-${jugador.id}" id="res-${jugador.id}" value="reserva">
+        <label class="btn btn-outline-secondary" for="res-${jugador.id}">Reserva</label>
+      </div>
+
+      <div class="btn-group equipos">
+        <input type="radio" class="btn-check" name="equipo-${jugador.id}" id="eqA-${jugador.id}" value="A" disabled>
+        <label class="btn btn-outline-dark equipo-label" for="eqA-${jugador.id}">⚪ Blanco</label>
+
+        <input type="radio" class="btn-check" name="equipo-${jugador.id}" id="eqB-${jugador.id}" value="B" disabled>
+        <label class="btn btn-outline-dark equipo-label" for="eqB-${jugador.id}">⚫ Negro</label>
+      </div>
+
+      <button class="btn btn-warning btn-sm" onclick="removeJugador('${jugador.id}')">❌</button>
+      <button class="btn btn-secondary btn-sm" onclick="resetJugador('${jugador.id}','${jugador.nombre}')">🔄</button>
+    `;
+
+    const radioTit = div.querySelector(`#tit-${jugador.id}`);
+    const radioRes = div.querySelector(`#res-${jugador.id}`);
+    const eqA = div.querySelector(`#eqA-${jugador.id}`);
+    const eqB = div.querySelector(`#eqB-${jugador.id}`);
+    const labelA = div.querySelector(`label[for="eqA-${jugador.id}"]`);
+    const labelB = div.querySelector(`label[for="eqB-${jugador.id}"]`);
+
+    function actualizarEquipos() {
+      if (radioTit.checked) {
+        eqA.disabled = false;
+        eqB.disabled = false;
+        labelA.classList.remove("disabled");
+        labelB.classList.remove("disabled");
+      } else {
+        eqA.disabled = true;
+        eqB.disabled = true;
+        eqA.checked = false;
+        eqB.checked = false;
+        labelA.classList.add("disabled");
+        labelB.classList.add("disabled");
+      }
+    }
+
+    radioTit.addEventListener("change", actualizarEquipos);
+    radioRes.addEventListener("change", actualizarEquipos);
+
+    div.querySelectorAll("input").forEach(inp => {
+      inp.addEventListener("change", () => actualizarCampo(jugador));
+    });
+
+    cont.appendChild(div);
+  });
+}
+
+  // ---------- LÓGICA ACTUALIZAR CAMPO ----------
+function actualizarCampo(jugador) {
+  const rol = getRolChecked(jugador.id);
+  const equipo = getEquipoChecked(jugador.id);
+
+  if (!rol) return;
+
+  // Siempre limpiamos cualquier rastro previo
+  quitarDeReservas(jugador.nombre);
+  quitarDelCampo(jugador.nombre);
+
+  if (rol.value === "titular") {
+    if (!equipo) return; // Esperamos elección de equipo
+
+    const equipoId = equipo.value;
+    recalcularOcupadas();
+
+    if ((equipoId === "A" && ocupadasA >= posiciones.A.length) ||
+        (equipoId === "B" && ocupadasB >= posiciones.B.length)) {
+      alert("Ya hay 5 titulares en ese equipo.");
+      return;
+    }
+
+    const posLibre = primeraPosicionLibre(equipoId);
+    if (!posLibre) return;
+
+    const el = document.getElementById(posLibre);
+    el.textContent = jugador.nombre;
+    el.classList.add("asignado");
+    setTimeout(() => el.classList.remove("asignado"), 350);
+
+    recalcularOcupadas();
+
+  } else if (rol.value === "reserva") {
+    addReservaSiNoExiste(jugador.nombre);
+  }
+}
+
+// ---------- RESET JUGADOR (fuera de actualizarCampo) ----------
+function resetJugador(id, nombre) {
+  document.querySelectorAll(`input[name="rol-${id}"]`).forEach(r => r.checked = false);
+  document.querySelectorAll(`input[name="equipo-${id}"]`).forEach(r => r.checked = false);
+  quitarDelCampo(nombre);
+  quitarDeReservas(nombre);
+  recalcularOcupadas();
+}
+window.resetJugador = resetJugador;
+
+
+  // ---------- COPIAR LISTA (mejorada) ----------
+  function copiarLista() {
+    let titularesA = [], titularesB = [], reservas = [];
+
+    posiciones.A.forEach(pos => {
+      const el = document.getElementById(pos);
+      if (el && el.textContent.trim() !== placeholderOf(el)) titularesA.push(el.textContent.trim() + " ⚪");
+    });
+    posiciones.B.forEach(pos => {
+      const el = document.getElementById(pos);
+      if (el && el.textContent.trim() !== placeholderOf(el)) titularesB.push(el.textContent.trim() + " ⚫");
+    });
+
+    [...listaReservas.children].forEach(li => reservas.push(li.dataset.nombre));
+
+    const texto =
+      "Titulares Equipo A:\n" + (titularesA.length ? titularesA.join("\n") : "—") +
+      "\n\nTitulares Equipo B:\n" + (titularesB.length ? titularesB.join("\n") : "—") +
+      "\n\nReservas:\n" + (reservas.length ? reservas.join("\n") : "—");
+
+    navigator.clipboard.writeText(texto).then(() => {
+      alert("Lista copiada al portapapeles.");
+    }).catch(() => {
+      alert("No se pudo copiar automáticamente. Selecciona y copia manualmente.");
     });
   }
+  window.copiarLista = copiarLista;
+  // ---------- GUARDAR ALINEACIÓN ----------
+async function guardarAlineacion() {
+  let titularesA = [], titularesB = [], reservas = [];
+  const fecha = document.getElementById("fechaInput").value;
 
-  window.resetJugador = (id, nombre) => {
-    document.querySelectorAll(`input[name="rol-${id}"], input[name="eq-${id}"]`).forEach(i => i.checked = false);
-    quitarDelCampo(nombre);
-    quitarDeReservas(nombre);
-  };
+  // Recoger titulares del equipo A
+  posiciones.A.forEach(pos => {
+    const el = document.getElementById(pos);
+    if (el && el.textContent.trim() !== placeholderOf(el))
+      titularesA.push(el.textContent.trim());
+  });
 
-  // BOTÓN EQUILIBRAR
-  document.getElementById("btnEquilibrar").onclick = async () => {
-    const snap = await getDocs(collection(db, "alineaciones"));
-    let historial = {};
-    snap.forEach(d => {
-      const p = d.data().puntuaciones;
-      if (p) {
-        Object.entries(p).forEach(([nom, nota]) => {
-          if (!historial[nom]) historial[nom] = [];
-          historial[nom].push(nota);
-        });
-      }
+  // Recoger titulares del equipo B
+  posiciones.B.forEach(pos => {
+    const el = document.getElementById(pos);
+    if (el && el.textContent.trim() !== placeholderOf(el))
+      titularesB.push(el.textContent.trim());
+  });
+
+  // Recoger reservas
+  [...listaReservas.children].forEach(li => reservas.push(li.dataset.nombre));
+
+  // Texto para copiar al portapapeles
+  const texto =
+    "📅 *Fecha:* " + (fecha || "—") +
+    "\n\n⚪ *Equipo A (Blancos)*\n" + (titularesA.length ? "• " + titularesA.join("\n• ") : "—") +
+    "\n\n⚫ *Equipo B (Negros)*\n" + (titularesB.length ? "• " + titularesB.join("\n• ") : "—") +
+    "\n\n🔁 *Reservas*\n" + (reservas.length ? "• " + reservas.join("\n• ") : "—");
+
+  navigator.clipboard.writeText(texto);
+
+  // Guardar en Firebase con fecha como ID
+  try {
+    const docRefe = doc(db, "alineaciones", fecha);
+
+    // ✅ setDoc sobrescribe si ya existe el mismo ID (fecha)
+    await setDoc(docRefe, {
+      TitularesA: titularesA,
+      TitularesB: titularesB,
+      reservas: reservas,
+      fecha: fecha,
+      resultado: null
     });
 
-    let conv = [];
-    jugadoresBD.forEach(j => {
-      if (document.getElementById(`tit-${j.id}`).checked) {
-        const n = historial[j.nombre] || [];
-        const media = n.length ? n.reduce((a,b)=>a+b,0)/n.length : 5;
-        conv.push({ ...j, nivel: media });
-      }
-    });
+    alert("✅ Alineación guardada en Firebase (única por fecha, sobrescrita si ya existía).");
+  } catch (e) {
+    console.error("Error al guardar en Firebase: ", e);
+    alert("❌ No se pudo guardar en Firebase.");
+  }
+}
 
-    if (conv.length !== 10) return alert("Selecciona exactamente 10 titulares para equilibrar.");
+window.guardarAlineacion = guardarAlineacion;
 
-    // Ordenar por nivel (de mayor a menor)
-    conv.sort((a, b) => b.nivel - a.nivel);
 
-    // Limpiar campo antes de repartir
-    [...posiciones.A, ...posiciones.B].forEach(id => {
-        const el = document.getElementById(id);
-        el.textContent = el.dataset.placeholder;
-    });
 
-    // Reparto Serpiente (1-A, 2-B, 3-B, 4-A, 5-A, 6-B...)
-    const orden = ["A","B","B","A","A","B","B","A","A","B"];
-    conv.forEach((j, i) => {
-      const eq = orden[i];
-      document.getElementById(`eq${eq}-${j.id}`).checked = true;
-      actualizarCampo(j);
-    });
-    alert("Equipos equilibrados según rendimiento histórico.");
-  };
-
-  document.getElementById("btnAddJugador").onclick = async () => {
-    const n = document.getElementById("inputNombre").value.trim();
-    if (n) { await addDoc(collection(db, "jugadores"), { nombre: n }); cargarJugadores(); document.getElementById("inputNombre").value = ""; }
-  };
-
-  document.getElementById("btnAlineacion").onclick = async () => {
-    const fecha = document.getElementById("fechaInput").value;
-    if (!fecha) return alert("Por favor, selecciona una fecha.");
-    
-    // Filtro corregido: obtenemos el texto de los divs que NO sea igual a su placeholder
-    const tA = posiciones.A.map(id => document.getElementById(id).textContent.trim())
-                          .filter((txt, i) => txt !== document.getElementById(posiciones.A[i]).dataset.placeholder);
-    const tB = posiciones.B.map(id => document.getElementById(id).textContent.trim())
-                          .filter((txt, i) => txt !== document.getElementById(posiciones.B[i]).dataset.placeholder);
-    
-    await setDoc(doc(db, "alineaciones", fecha), { TitularesA: tA, TitularesB: tB, fecha }, { merge: true });
-    alert("¡Alineación guardada correctamente!");
-  };
-
-  document.getElementById("btnExport").onclick = () => {
-    html2canvas(document.getElementById("contenedorCampo")).then(canvas => {
+  // ---------- EXPORTAR IMAGEN (más nítida) ----------
+  function exportarImagen() {
+    html2canvas(document.getElementById("contenedorCampo"), { scale: 2 }).then(canvas => {
       const link = document.createElement("a");
-      link.download = `alineacion-${new Date().getTime()}.png`;
-      link.href = canvas.toDataURL();
+      link.download = "alineacion.jpg";
+      link.href = canvas.toDataURL("image/jpeg", 0.95);
       link.click();
+    }).catch(err => {
+      console.error("Error exportando imagen:", err);
+      alert("No se pudo exportar la imagen.");
     });
-  };
+  }
 
+  // ---------- EVENTOS UI ----------
+  btnAddJugador.addEventListener("click", () => {
+    addJugador(inputNombre.value);
+    inputNombre.value = "";
+    inputNombre.focus();
+  });
+
+  inputNombre.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      addJugador(inputNombre.value);
+      inputNombre.value = "";
+    }
+  });
+
+  btnExport.addEventListener("click", exportarImagen);
+  btnCopiar.addEventListener("click", copiarLista);
+  btnAlineacion.addEventListener("click", guardarAlineacion);
+
+
+  // ---------- INICIALIZACIÓN ----------
+  // Inicializamos placeholders en el campo (por si el HTML se modifica)
+  function inicializarPlaceholders() {
+    [...posiciones.A, ...posiciones.B].forEach(pos => {
+      const el = document.getElementById(pos);
+      if (el && (!el.dataset.placeholder || el.dataset.placeholder.trim() === "")) {
+        el.dataset.placeholder = pos;
+      }
+      // Si el contenido es vacío, ponemos placeholder visible
+      if (el && (!el.textContent || el.textContent.trim() === "")) {
+        el.textContent = placeholderOf(el);
+      }
+    });
+    recalcularOcupadas();
+  }
+
+  inicializarPlaceholders();
   cargarJugadores();
+
 </script>
 </body>
 </html>
