@@ -2,264 +2,342 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Guardar Alineación y Resultado</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resultados y Valoraciones</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
-    .container {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 400px;
+  <style>
+    body { background:#f7f7f9; font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    
+    .rating-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .rating-input {
+      width: 60px;
       text-align: center;
     }
-
-    h2 {
-      margin-bottom: 1.5rem;
-      color: #333;
-    }
-
-    label {
-      display: block;
-      margin: 0.5rem 0 0.2rem;
-      font-weight: bold;
-      color: #555;
-      text-align: left;
-    }
-
-    input {
-      width: 100%;
-      padding: 0.6rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-
-    input:focus {
-      border-color: #007bff;
-      outline: none;
-      box-shadow: 0 0 5px rgba(0,123,255,0.3);
-    }
-
-    button {
-      background: #007bff;
-      color: #fff;
-      border: none;
-      padding: 0.8rem 1.2rem;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      width: 100%;
-      margin-top: 0.5rem;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    .card {
-      background: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 1rem;
-      margin-top: 1rem;
-      text-align: left;
-    }
-
-    .card h3 {
-      margin: 0 0 0.5rem;
-      color: #007bff;
-    }
+    /* Colores equipos */
+    .titular-blanco { border-left: 4px solid #ccc; padding-left: 8px; }
+    .titular-negro { border-left: 4px solid #111; padding-left: 8px; }
   </style>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, setDoc,doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDA_FDkrsAxtBt5_BhRgRkq3NNq3Lt7xdo",
-      authDomain: "convocatoria-8c340.firebaseapp.com",
-      projectId: "convocatoria-8c340",
-      storageBucket: "convocatoria-8c340.firebasestorage.app",
-      messagingSenderId: "968350738606",
-      appId: "1:968350738606:web:bdff77002fe19077a7a53f",
-      measurementId: "G-ZV9MG4T1FF"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // Guardar resultado en colección "resultados"
-    async function guardarResultado() {
-  const fecha = document.getElementById("fechaInput").value;
-  const resultado = document.getElementById("resultadoInput").value.trim();
-
-  if (!fecha || !resultado) {
-    alert("Por favor, introduce fecha y resultado.");
-    return;
-  }
-
-  try {
-    const docRef = doc(db, "resultados", fecha);
-
-    // setDoc sobrescribe por defecto si el documento ya existe
-    await setDoc(docRef, {
-      resultado: resultado,
-      fecha: fecha
-    });
-
-    alert("✅ Resultado guardado (sobrescrito si ya existía).");
-    
-  } catch (e) {
-    console.error("Error al guardar en Firebase: ", e);
-    alert("❌ No se pudo guardar en Firebase.");
-  }
-}
-
-    // Mostrar historial combinando alineaciones y resultados por fecha
-    // Mostrar historial en rango de fechas
-async function mostrarHistorialPorRango() {
-  const fechaInicio = document.getElementById("fechaInicio").value;
-  const fechaFin = document.getElementById("fechaFin").value;
-  const historialDiv = document.getElementById("historial");
-
-  if (!fechaInicio || !fechaFin) {
-    alert("Por favor, selecciona fecha inicio y fecha fin.");
-    return;
-  }
-
-  historialDiv.innerHTML = "<h3>Cargando historial...</h3>";
-
-  try {
-    const alineacionesSnap = await getDocs(collection(db, "alineaciones"));
-    const resultadosSnap = await getDocs(collection(db, "resultados"));
-
-    // Crear mapas por fecha
-    const alineacionesMap = {};
-    alineacionesSnap.forEach(doc => {
-      const data = doc.data();
-      alineacionesMap[data.fecha] = data;
-    });
-
-    const resultadosMap = {};
-    resultadosSnap.forEach(doc => {
-      const data = doc.data();
-      resultadosMap[data.fecha] = data.resultado;
-    });
-
-    historialDiv.innerHTML = "";
-
-    // Filtrar fechas dentro del rango
-    const fechas = Object.keys(alineacionesMap)
-      .filter(f => f >= fechaInicio && f <= fechaFin)
-      .sort();
-
-    if (fechas.length === 0) {
-      historialDiv.innerHTML = "<p>No hay registros en ese rango.</p>";
-      return;
-    }
-
-    fechas.forEach(fecha => {
-      const alineacion = alineacionesMap[fecha];
-      const resultado = resultadosMap[fecha] || "—";
-
-      const card = document.createElement("div");
-      card.className = "card mb-3";
-      card.innerHTML = `
-        <h3>📅 ${fecha}</h3>
-        <p><strong>⚪ Equipo A:</strong> ${alineacion.TitularesA?.join(", ") || "—"}</p>
-        <p><strong>⚫ Equipo B:</strong> ${alineacion.TitularesB?.join(", ") || "—"}</p>
-        <p><strong>🔁 Reservas:</strong> ${alineacion.reservas?.join(", ") || "—"}</p>
-        <p><strong>🏆 Resultado:</strong> ${resultado}</p>
-      `;
-      historialDiv.appendChild(card);
-    });
-  } catch (e) {
-    console.error("Error al obtener historial: ", e);
-    historialDiv.innerHTML = "<p>No se pudo cargar el historial.</p>";
-  }
-}
-
-// Asignar evento al botón
-document.getElementById("historialBtn").addEventListener("click", mostrarHistorialPorRango);
-
-
-    // Asignar eventos a los botones
-    document.getElementById("guardarBtn").addEventListener("click", guardarResultado);
-    document.getElementById("historialBtn").addEventListener("click", mostrarHistorialPorFecha);
-  </script>
 </head>
 <body>
-<div class="container py-4">
 
-  <!-- Encabezado -->
+<div class="container py-4" style="max-width: 600px;">
+
   <div class="text-center mb-4">
-    <h1 class="h3">Convocatoria Futbito</h1>
-    <p class="text-muted">Miércoles de futbito !!</p>
-    <a href="index.html" class="btn btn-primary btn-lg" style="background-color: #37a10d; color: white; padding: 5px; border-radius: 5px; text-decoration: none;">
-      Ir a Alineaciones
+    <h1 class="h3">Resultados y Notas</h1>
+    <p class="text-muted">Gestiona los partidos jugados</p>
+    <a href="index.html" class="btn btn-outline-primary btn-sm">
+      ← Volver a Alineaciones
     </a>
   </div>
 
-  <!-- Card para guardar resultado -->
   <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">1. Guardar Resultado</h5>
+    </div>
     <div class="card-body">
-      <h2 class="h5 mb-3">Guardar Resultado</h2>
+      <div class="row g-2">
+        <div class="col-6">
+          <label class="form-label small">📅 Fecha</label>
+          <input type="date" id="fechaInput" class="form-control">
+        </div>
+        <div class="col-6">
+          <label class="form-label small">⚽ Marcador</label>
+          <input type="text" id="resultadoInput" class="form-control" placeholder="Ej: 5-4">
+        </div>
+      </div>
+      <button id="guardarBtn" class="btn btn-primary w-100 mt-3">💾 Guardar Resultado</button>
+    </div>
+  </div>
 
-      <div class="mb-3">
-        <label for="fechaInput" class="form-label">📅 Fecha</label>
-        <input type="date" id="fechaInput" class="form-control">
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">2. Puntuar Jugadores (1-10)</h5>
+    </div>
+    <div class="card-body">
+      <p class="small text-muted">Selecciona la fecha del partido para cargar la alineación y poner notas.</p>
+      
+      <div class="input-group mb-3">
+        <input type="date" id="fechaValoracion" class="form-control">
+        <button id="btnCargarParaValorar" class="btn btn-secondary">Cargar Jugadores</button>
       </div>
 
-      <div class="mb-3">
-        <label for="resultadoInput" class="form-label">⚽ Resultado</label>
-        <input type="text" id="resultadoInput" class="form-control" placeholder="Ej: 3-2">
-      </div>
+      <div id="panelValoracion" style="display:none;">
+        <h6 class="mt-3 text-muted">⚪ Equipo Blanco (A)</h6>
+        <div id="listaValoracionA" class="mb-3"></div>
 
-      <div class="d-grid mb-3">
-        <button id="guardarBtn" class="btn btn-primary">
-          💾 Guardar Resultado
-        </button>
+        <h6 class="mt-3 text-muted">⚫ Equipo Negro (B)</h6>
+        <div id="listaValoracionB" class="mb-3"></div>
+
+        <button id="btnGuardarNotas" class="btn btn-success w-100 mt-2">💾 Guardar Notas</button>
       </div>
     </div>
   </div>
 
-  <!-- Card para historial -->
-<div class="card shadow-sm">
-  <div class="card-body">
-    <h2 class="h5 mb-3">Historial</h2>
-
-    <div class="mb-3">
-      <label for="fechaInicio" class="form-label">📅 Fecha inicio</label>
-      <input type="date" id="fechaInicio" class="form-control">
+  <div class="card shadow-sm">
+    <div class="card-header bg-info text-white">
+      <h5 class="mb-0">3. Historial</h5>
     </div>
-
-    <div class="mb-3">
-      <label for="fechaFin" class="form-label">📅 Fecha fin</label>
-      <input type="date" id="fechaFin" class="form-control">
+    <div class="card-body">
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="small">Desde</label>
+          <input type="date" id="fechaInicio" class="form-control">
+        </div>
+        <div class="col-6">
+          <label class="small">Hasta</label>
+          <input type="date" id="fechaFin" class="form-control">
+        </div>
+      </div>
+      <button id="historialBtn" class="btn btn-info w-100 text-white">📜 Ver Historial</button>
+      
+      <div id="historial" class="mt-4"></div>
     </div>
-
-    <div class="d-grid mb-3">
-      <button id="historialBtn" class="btn btn-info">
-        📜 Ver Historial
-      </button>
-    </div>
-
-    <div id="historial" class="mt-3"></div>
   </div>
+
 </div>
+
+<script type="module">
+  // Usamos la versión 12.6.0 para coincidir con tu index.html
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { 
+    getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc 
+  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDA_FDkrsAxtBt5_BhRgRkq3NNq3Lt7xdo",
+    authDomain: "convocatoria-8c340.firebaseapp.com",
+    projectId: "convocatoria-8c340",
+    storageBucket: "convocatoria-8c340.firebasestorage.app",
+    messagingSenderId: "968350738606",
+    appId: "1:968350738606:web:bdff77002fe19077a7a53f",
+    measurementId: "G-ZV9MG4T1FF"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // -------------------------------------------------------
+  // 1. GUARDAR RESULTADO
+  // -------------------------------------------------------
+  async function guardarResultado() {
+    const fecha = document.getElementById("fechaInput").value;
+    const resultado = document.getElementById("resultadoInput").value.trim();
+
+    if (!fecha || !resultado) {
+      alert("Por favor, introduce fecha y resultado.");
+      return;
+    }
+
+    try {
+      // Guardamos en colección 'resultados'
+      const docRef = doc(db, "resultados", fecha);
+      await setDoc(docRef, {
+        resultado: resultado,
+        fecha: fecha
+      });
+      
+      // Opcional: También actualizamos el documento de 'alineaciones' si existe, para tenerlo todo junto
+      const alineacionRef = doc(db, "alineaciones", fecha);
+      const alineacionSnap = await getDoc(alineacionRef);
+      if(alineacionSnap.exists()) {
+        await setDoc(alineacionRef, { resultado: resultado }, { merge: true });
+      }
+
+      alert("✅ Resultado guardado correctamente.");
+    } catch (e) {
+      console.error("Error al guardar: ", e);
+      alert("❌ Error al guardar.");
+    }
+  }
+
+  // -------------------------------------------------------
+  // 2. VALORAR JUGADORES (NUEVO)
+  // -------------------------------------------------------
+  const panelValoracion = document.getElementById("panelValoracion");
+  const listaA = document.getElementById("listaValoracionA");
+  const listaB = document.getElementById("listaValoracionB");
+  let jugadoresParaValorar = []; // Cache temporal
+
+  async function cargarAlineacionParaValorar() {
+    const fecha = document.getElementById("fechaValoracion").value;
+    if (!fecha) return alert("Selecciona una fecha.");
+
+    try {
+      const docRef = doc(db, "alineaciones", fecha);
+      const snap = await getDoc(docRef);
+
+      if (!snap.exists()) {
+        alert("❌ No hay alineación guardada para esa fecha.");
+        panelValoracion.style.display = "none";
+        return;
+      }
+
+      const data = snap.data();
+      const titularesA = data.TitularesA || [];
+      const titularesB = data.TitularesB || [];
+      const notasPrevias = data.puntuaciones || {}; // Si ya existen notas guardadas
+
+      listaA.innerHTML = "";
+      listaB.innerHTML = "";
+
+      // Función auxiliar para crear la fila HTML
+      const crearFila = (nombre, equipoClass) => {
+        const div = document.createElement("div");
+        div.className = `rating-row ${equipoClass}`;
+        // Buscamos si ya tenía nota, si no, vacío
+        const notaGuardada = notasPrevias[nombre] || ""; 
+        
+        div.innerHTML = `
+          <span>${nombre}</span>
+          <input type="number" min="1" max="10" 
+                 class="form-control rating-input input-nota" 
+                 data-nombre="${nombre}" 
+                 placeholder="-" value="${notaGuardada}">
+        `;
+        return div;
+      };
+
+      if(titularesA.length === 0 && titularesB.length === 0) {
+        alert("La alineación está vacía.");
+        return;
+      }
+
+      titularesA.forEach(nombre => listaA.appendChild(crearFila(nombre, "titular-blanco")));
+      titularesB.forEach(nombre => listaB.appendChild(crearFila(nombre, "titular-negro")));
+
+      panelValoracion.style.display = "block";
+
+    } catch (e) {
+      console.error(e);
+      alert("Error cargando alineación.");
+    }
+  }
+
+  async function guardarNotas() {
+    const fecha = document.getElementById("fechaValoracion").value;
+    const inputs = document.querySelectorAll(".input-nota");
+    
+    // Construimos el objeto mapa: { "Juan": 8, "Pedro": 5 }
+    let puntuacionesObj = {};
+
+    inputs.forEach(inp => {
+      const val = inp.value;
+      const nombre = inp.dataset.nombre;
+      if (val) {
+        puntuacionesObj[nombre] = parseInt(val);
+      }
+    });
+
+    try {
+      const docRef = doc(db, "alineaciones", fecha);
+      // Usamos setDoc con merge para no borrar lo que ya existe (titulares, etc)
+      await setDoc(docRef, { 
+        puntuaciones: puntuacionesObj 
+      }, { merge: true });
+
+      alert("✅ ¡Notas guardadas correctamente!");
+    } catch (e) {
+      console.error(e);
+      alert("❌ Error guardando notas.");
+    }
+  }
+
+  // -------------------------------------------------------
+  // 3. HISTORIAL
+  // -------------------------------------------------------
+  async function mostrarHistorialPorRango() {
+    const fechaInicio = document.getElementById("fechaInicio").value;
+    const fechaFin = document.getElementById("fechaFin").value;
+    const historialDiv = document.getElementById("historial");
+
+    if (!fechaInicio || !fechaFin) {
+      alert("Selecciona fecha inicio y fin.");
+      return;
+    }
+
+    historialDiv.innerHTML = "<div class='text-center spinner-border text-primary'></div>";
+
+    try {
+      // Obtenemos alineaciones (que ahora pueden contener resultado y notas)
+      const alineacionesSnap = await getDocs(collection(db, "alineaciones"));
+      
+      // Creamos un array filtrado
+      let partidos = [];
+      alineacionesSnap.forEach(docSnap => {
+        const d = docSnap.data();
+        // Filtrar por rango
+        if (d.fecha >= fechaInicio && d.fecha <= fechaFin) {
+          partidos.push(d);
+        }
+      });
+
+      // Ordenar por fecha descendente
+      partidos.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+      historialDiv.innerHTML = "";
+
+      if (partidos.length === 0) {
+        historialDiv.innerHTML = "<p class='text-center text-muted'>No hay partidos en ese rango.</p>";
+        return;
+      }
+
+      partidos.forEach(p => {
+        // Formatear puntuaciones para mostrar
+        let htmlNotas = "";
+        if (p.puntuaciones) {
+            htmlNotas = "<div class='mt-2 p-2 bg-light border rounded small'><strong>⭐ Puntuaciones:</strong><br>";
+            // Ordenar por nota (opcional) o mostrar tal cual
+            for (const [nombre, nota] of Object.entries(p.puntuaciones)) {
+                htmlNotas += `<span class="badge bg-secondary me-1" style="font-weight:normal;">${nombre}: ${nota}</span> `;
+            }
+            htmlNotas += "</div>";
+        }
+
+        const card = document.createElement("div");
+        card.className = "card mb-3";
+        card.innerHTML = `
+          <div class="card-body">
+            <h5 class="card-title d-flex justify-content-between">
+                <span>📅 ${p.fecha}</span>
+                <span class="badge bg-dark">${p.resultado || "Sin resultado"}</span>
+            </h5>
+            <hr>
+            <div class="row">
+                <div class="col-6 border-end">
+                    <strong class="text-secondary">⚪ Blanco</strong><br>
+                    ${p.TitularesA ? p.TitularesA.join("<br>") : "-"}
+                </div>
+                <div class="col-6">
+                    <strong class="text-secondary">⚫ Negro</strong><br>
+                    ${p.TitularesB ? p.TitularesB.join("<br>") : "-"}
+                </div>
+            </div>
+            ${htmlNotas}
+          </div>
+        `;
+        historialDiv.appendChild(card);
+      });
+
+    } catch (e) {
+      console.error("Error historial:", e);
+      historialDiv.innerHTML = "<p class='text-danger'>Error cargando historial.</p>";
+    }
+  }
+
+  // Asignar eventos
+  document.getElementById("guardarBtn").addEventListener("click", guardarResultado);
+  document.getElementById("btnCargarParaValorar").addEventListener("click", cargarAlineacionParaValorar);
+  document.getElementById("btnGuardarNotas").addEventListener("click", guardarNotas);
+  document.getElementById("historialBtn").addEventListener("click", mostrarHistorialPorRango);
+
+</script>
 </body>
 </html>
-
