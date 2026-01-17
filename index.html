@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Alineación Fútbol Sala — Optimizado (Opción A)</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
@@ -117,19 +117,16 @@
   <h1 class="h3 mb-3">Convocatoria Futbito</h1>
   <p class="text-muted mb-4">Miércoles de futbito !!</p>
 
-  <!-- Botón con estilo Bootstrap -->
   <a href="resultado.html" class="btn btn-success btn-lg mb-4">
     Ir a Resultados
   </a>
 </div>
 
-  <!-- ===== FECHA ===== -->
   <div class="mt-3 mb-4 text-center">
     <label for="fechaInput" class="form-label">📅 Fecha del partido</label>
     <input type="date" id="fechaInput" class="form-control mx-auto" style="max-width:250px;">
   </div>
 
-  <!-- ===== LISTA ===== -->
   <div class="card mb-4">
     <div class="card-body">
       <h2 class="h5">Lista de jugadores</h2>
@@ -139,11 +136,10 @@
         <input id="inputNombre" class="form-control" placeholder="Añadir jugador (Enter para añadir)">
         <button id="btnAddJugador" class="btn btn-primary">Añadir</button>
       </div>
-      <div class="mt-2 small text-muted">Marca <strong>Titular</strong> o <strong>Reserva</strong>, luego elige equipo. Titular requiere equipo.</div>
+      <div class="mt-2 small text-muted">Marca <strong>Titular</strong> o <strong>Reserva</strong>. Para asignación manual, elige equipo. Para automática, usa el botón "Equipos Auto".</div>
     </div>
   </div>
 
-  <!-- ===== CAMPO ===== -->
   <div id="contenedorCampo">
     <div class="campo" id="campo">
       <div class="linea-central"></div>
@@ -152,15 +148,13 @@
       <div class="porteria izq"></div>
       <div class="porteria der"></div>
 
-      <!-- Equipo A -->
       <div id="titulo1">Equipo Blanco</div>
       <div id="porteroA" class="jugador-campo equipoA" data-placeholder="Portero A">Portero A</div>
       <div id="defensaA1" class="jugador-campo equipoA" data-placeholder="Def A1">Def A1</div>
       <div id="defensaA2" class="jugador-campo equipoA" data-placeholder="Def A2">Def A2</div>
       <div id="alaA" class="jugador-campo equipoA" data-placeholder="Ala A">Ala A</div>
-      <div id="extraA" class="jugador-campo equipoA" data-placeholder="pivot A">pivot A</div>
+      <div id="extraA" class="jugador-campo equipoA" data-placeholder="extraA">extraA</div>
 
-      <!-- Equipo B -->
       <div id="titulo2">Equipo Negro</div>
       <div id="porteroB" class="jugador-campo equipoB" data-placeholder="Portero B">Portero B</div>
       <div id="defensaB1" class="jugador-campo equipoB" data-placeholder="Def B1">Def B1</div>
@@ -170,7 +164,6 @@
     </div>
   </div>
 
-  <!-- ===== RESERVAS ===== -->
   <div class="card mt-4">
     <div class="card-body">
       <h2 class="h5">Reservas</h2>
@@ -178,7 +171,6 @@
     </div>
   </div>
 
-  <!-- ===== BOTONES ===== -->
   <div class="card shadow-sm">
     <div class="card-body text-center">
       <h5 class="card-title mb-3">Acciones</h5>
@@ -186,24 +178,21 @@
       <div class="d-flex flex-wrap justify-content-center gap-2">
         <button class="btn btn-success flex-fill" id="btnExport">📸 Exportar imagen</button>
         <button class="btn btn-info flex-fill" id="btnCopiar">📋 Copiar lista</button>
+        <button class="btn btn-warning flex-fill" id="btnAuto">⚖️ Equipos Auto</button> 
         <button class="btn btn-primary flex-fill" id="btnAlineacion">💾 Guardar alineación</button>
       </div>
-
 
     </div>
   </div>
 </div>
 
-<!-- Firebase SDK & App (module) -->
 <script type="module">
-  // ---------- FIREBASE IMPORTS ----------
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
   import { 
     getFirestore, collection, addDoc, deleteDoc, doc, getDocs, setDoc 
   } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-  // ---------- CONFIG FIREBASE (mantén la tuya) ----------
   const firebaseConfig = {
     apiKey: "AIzaSyDA_FDkrsAxtBt5_BhRgRkq3NNq3Lt7xdo",
     authDomain: "convocatoria-8c340.firebaseapp.com",
@@ -215,414 +204,225 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
   const db = getFirestore(app);
 
-  // ---------- ESTADO / CONSTANTES ----------
   const posiciones = {
-    A: ["porteroA","defensaA1","defensaA2","alaA","extraA"],
-    B: ["porteroB","defensaB1","defensaB2","alaB","pivotB"]
+    A: ["porteroA", "defensaA1", "defensaA2", "alaA", "extraA"],
+    B: ["porteroB", "defensaB1", "defensaB2", "alaB", "pivotB"]
   };
-  let ocupadasA = 0, ocupadasB = 0;
-  let jugadoresBD = []; // { id, nombre }
+  let jugadoresBD = []; 
 
-  /* Elementos DOM */
   const inputNombre = document.getElementById("inputNombre");
   const btnAddJugador = document.getElementById("btnAddJugador");
   const listaJugadoresCont = document.getElementById("listaJugadores");
   const listaReservas = document.getElementById("listaReservas");
-  const contCampo = document.getElementById("campo");
-  const btnExport = document.getElementById("btnExport");
-  const btnCopiar = document.getElementById("btnCopiar");
 
-  // ---------- UTILIDADES ----------
-  const getRolChecked = (id) => document.querySelector(`input[name="rol-${id}"]:checked`);
-  const getEquipoChecked = (id) => document.querySelector(`input[name="equipo-${id}"]:checked`);
-
+  // Obtener el nombre original del hueco (ej: "Portero A")
   function placeholderOf(el) {
-    return el.dataset.placeholder ?? el.id;
+    return el.dataset.placeholder || el.id;
   }
 
-  function estaEnReservas(nombre) {
-    return [...listaReservas.children].some(li => li.dataset.nombre === nombre);
+  // Verifica si el texto actual es un nombre de jugador o un marcador de posición
+  function esHuecoRealmenteLibre(el) {
+    if (!el) return false;
+    const texto = el.textContent.trim().toLowerCase();
+    const ph = (el.dataset.placeholder || "").toLowerCase();
+    const id = el.id.toLowerCase();
+    // Es libre si coincide con el placeholder, el ID, o palabras clave
+    return texto === "" || texto === ph || texto === id || 
+           texto.includes("portero") || texto.includes("def") || 
+           texto.includes("ala") || texto.includes("pivot") || texto.includes("extra");
   }
 
-  // recalcula ocupadas desde DOM (robusto)
-  function recalcularOcupadas() {
-    ocupadasA = posiciones.A.reduce((acc, pos) => {
-      const el = document.getElementById(pos);
-      return acc + (el && el.textContent.trim() !== placeholderOf(el) ? 1 : 0);
-    }, 0);
-    ocupadasB = posiciones.B.reduce((acc, pos) => {
-      const el = document.getElementById(pos);
-      return acc + (el && el.textContent.trim() !== placeholderOf(el) ? 1 : 0);
-    }, 0);
-  }
-
-  // Busca la primera posicion vacía para equipo (A o B). Devuelve id o null
-  function primeraPosicionLibre(equipo) {
-    for (const pos of posiciones[equipo]) {
-      const el = document.getElementById(pos);
-      if (el && el.textContent.trim() === placeholderOf(el)) return pos;
-    }
-    return null;
-  }
-
-  // Quitar a un jugador del campo (por nombre)
   function quitarDelCampo(nombre) {
-    [...posiciones.A, ...posiciones.B].forEach(pos => {
-      const el = document.getElementById(pos);
-      if (!el) return;
-      if (el.textContent.trim() === nombre) {
+    [...posiciones.A, ...posiciones.B].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.textContent.trim() === nombre) {
         el.textContent = placeholderOf(el);
-        // optional: remove assigned visual class
         el.classList.remove("asignado");
       }
     });
-    recalcularOcupadas();
   }
 
-  // Quitar de reservas
-  function quitarDeReservas(nombre) {
-    [...listaReservas.children].forEach(li => {
-      if (li.dataset.nombre === nombre) li.remove();
-    });
-  }
+  // Lógica para cambios MANUALES
+  function actualizarCampo(jugador) {
+    const radioRol = document.querySelector(`input[name="rol-${jugador.id}"]:checked`);
+    const radioEq = document.querySelector(`input[name="equipo-${jugador.id}"]:checked`);
 
-  // Evita añadir reserva duplicada
+    // 1. Siempre lo quitamos de donde esté antes de moverlo
+    quitarDelCampo(jugador.nombre);
+    [...listaReservas.children].forEach(li => { if(li.dataset.nombre === jugador.nombre) li.remove(); });
+
+    if (radioRol?.value === "titular") {
+      if (radioEq?.value) {
+        const eqId = radioEq.value;
+        
+        // 2. Buscamos si hay un hueco libre en el nuevo equipo
+        const posId = posiciones[eqId].find(id => esHuecoRealmenteLibre(document.getElementById(id)));
+        
+        if (posId) {
+          const el = document.getElementById(posId);
+          el.textContent = jugador.nombre;
+          el.classList.add("asignado");
+        } else {
+          // Si el equipo está lleno, avisamos y desmarcamos el equipo
+          alert("El Equipo " + (eqId === 'A' ? 'Blanco' : 'Negro') + " ya tiene 5 jugadores. Mueve a otro primero.");
+          radioEq.checked = false; 
+        }
+      }
+    } else if (radioRol?.value === "reserva") {
+      addReservaSiNoExiste(jugador.nombre);
+    }
+  }
   function addReservaSiNoExiste(nombre) {
-    if (estaEnReservas(nombre)) return;
+    // Evitar duplicados en la lista de abajo
+    if ([...listaReservas.children].some(li => li.dataset.nombre === nombre)) return;
+    
     const li = document.createElement("li");
-    li.className = "list-group-item";
+    li.className = "list-group-item d-flex justify-content-between align-items-center";
     li.dataset.nombre = nombre;
-    li.innerHTML = `
-      <span class="flex-grow-1">${nombre}</span>
-      <div>
-        <button class="btn btn-sm btn-outline-danger" title="Quitar reserva">❌</button>
-      </div>
-    `;
-    li.querySelector("button").onclick = () => li.remove();
+    li.innerHTML = `<span>${nombre}</span><button class="btn btn-sm btn-outline-danger">❌</button>`;
+    li.querySelector("button").onclick = () => {
+        li.remove();
+        // Al quitar de reserva, también desmarcamos el radio de la lista
+        const jId = jugadoresBD.find(j => j.nombre === nombre)?.id;
+        if(jId) document.querySelectorAll(`input[name="rol-${jId}"]`).forEach(r => r.checked = false);
+    };
     listaReservas.appendChild(li);
   }
 
-// Quitar jugador de cualquier parte de la alineación
-function quitarJugadorDeAlineacion(nombre) {
-  alineacion.titularesA = alineacion.titularesA.filter(t => t.nombre !== nombre);
-  alineacion.titularesB = alineacion.titularesB.filter(t => t.nombre !== nombre);
-  alineacion.reservas = alineacion.reservas.filter(r => r !== nombre);
-}
+  // Lógica para botón AUTOMÁTICO (Reparto equilibrado)
+  async function generarEquiposEquilibrados() {
+    const titularesNodes = document.querySelectorAll('input[value="titular"]:checked');
+    if (titularesNodes.length === 0) return alert("Selecciona titulares primero");
 
-
-  // ---------- FIRESTORE: CARGAR INICIAL ----------
-  async function cargarJugadores() {
-    try {
-      const snapshot = await getDocs(collection(db, "jugadores"));
-      jugadoresBD = snapshot.docs.map(d => ({ id: d.id, nombre: d.data().nombre }));
-      renderLista();
-    } catch (err) {
-      console.error("Error cargando jugadores:", err);
-      // en caso de fallo, lista queda vacía y el resto sigue funcionando
-      jugadoresBD = [];
-      renderLista();
-    }
-  }
-
-  // ---------- FIRESTORE: AÑADIR / BORRAR optimizados ----------
-  async function addJugador(nombre) {
-    // trim y protección
-    nombre = nombre.trim();
-    if (!nombre) return;
-
-    // prevenir duplicados en la lista local
-    if (jugadoresBD.some(j => j.nombre.toLowerCase() === nombre.toLowerCase())) {
-      alert("Ese jugador ya está en la lista.");
-      return;
-    }
+    const ids = Array.from(titularesNodes).map(n => n.id.replace('tit-', ''));
+    const btn = document.getElementById("btnAuto");
+    btn.disabled = true;
 
     try {
-      const docRef = await addDoc(collection(db, "jugadores"), { nombre });
-      // Actualizar estado local sin recargar desde Firestore
-      jugadoresBD.push({ id: docRef.id, nombre });
-      renderLista();
-    } catch (err) {
-      console.error("Error añadiendo jugador:", err);
-      alert("No se pudo añadir el jugador. Mira la consola.");
-    }
-  }
+      const snap = await getDocs(collection(db, "alineaciones"));
+      const historial = snap.docs.map(d => d.data().puntuaciones).filter(p => p);
 
- async function removeJugador(id) {
-  if (!confirm("¿Eliminar jugador de la base de datos?")) return;
+      let dataJugadores = ids.map(id => {
+        const j = jugadoresBD.find(x => x.id === id);
+        let suma = 0, count = 0;
+        historial.forEach(p => { if(p[j.nombre]) { suma += Number(p[j.nombre]); count++; } });
+        return { id, nombre: j.nombre, rank: count > 0 ? suma/count : 6.0 };
+      }).sort((a,b) => b.rank - a.rank);
 
-  const jugador = jugadoresBD.find(j => j.id === id);
-  if (!jugador) return;
+      // Algoritmo de reparto (Serpiente)
+      let eqA = [], eqB = [], sumA = 0, sumB = 0;
+      dataJugadores.forEach(j => {
+        if (sumA <= sumB && eqA.length < 5) { eqA.push(j); sumA += j.rank; }
+        else if (eqB.length < 5) { eqB.push(j); sumB += j.rank; }
+        else if (eqA.length < 5) { eqA.push(j); sumA += j.rank; }
+      });
 
-  try {
-    await deleteDoc(doc(db, "jugadores", id));
-    // limpiar campo y reservas antes de actualizar lista
-    quitarDelCampo(jugador.nombre);
-    quitarDeReservas(jugador.nombre);
-
-    jugadoresBD = jugadoresBD.filter(j => j.id !== id);
-    renderLista();
-    recalcularOcupadas();
-  } catch (err) {
-    console.error("Error borrando jugador:", err);
-    alert("No se pudo eliminar. Revisa la consola.");
-  }
-}
-
-
-  // Exponer globalmente para onclick inline (botón delete)
-  window.removeJugador = removeJugador;
-
-  // ---------- RENDER LISTA ----------
-  function renderLista() {
-  const cont = document.getElementById("listaJugadores");
-  cont.innerHTML = "";
-
-  jugadoresBD.forEach(jugador => {
-    const div = document.createElement("div");
-    div.className = "jugador-row";
-
-    div.innerHTML = `
-      <div class="jugador-nombre">${jugador.nombre}</div>
-
-      <div class="btn-group">
-        <input type="radio" class="btn-check rol" name="rol-${jugador.id}" id="tit-${jugador.id}" value="titular">
-        <label class="btn btn-outline-success" for="tit-${jugador.id}">Titular</label>
-
-        <input type="radio" class="btn-check rol" name="rol-${jugador.id}" id="res-${jugador.id}" value="reserva">
-        <label class="btn btn-outline-secondary" for="res-${jugador.id}">Reserva</label>
-      </div>
-
-      <div class="btn-group equipos">
-        <input type="radio" class="btn-check" name="equipo-${jugador.id}" id="eqA-${jugador.id}" value="A" disabled>
-        <label class="btn btn-outline-dark equipo-label" for="eqA-${jugador.id}">⚪ Blanco</label>
-
-        <input type="radio" class="btn-check" name="equipo-${jugador.id}" id="eqB-${jugador.id}" value="B" disabled>
-        <label class="btn btn-outline-dark equipo-label" for="eqB-${jugador.id}">⚫ Negro</label>
-      </div>
-
-      <button class="btn btn-warning btn-sm" onclick="removeJugador('${jugador.id}')">❌</button>
-      <button class="btn btn-secondary btn-sm" onclick="resetJugador('${jugador.id}','${jugador.nombre}')">🔄</button>
-    `;
-
-    const radioTit = div.querySelector(`#tit-${jugador.id}`);
-    const radioRes = div.querySelector(`#res-${jugador.id}`);
-    const eqA = div.querySelector(`#eqA-${jugador.id}`);
-    const eqB = div.querySelector(`#eqB-${jugador.id}`);
-    const labelA = div.querySelector(`label[for="eqA-${jugador.id}"]`);
-    const labelB = div.querySelector(`label[for="eqB-${jugador.id}"]`);
-
-    function actualizarEquipos() {
-      if (radioTit.checked) {
-        eqA.disabled = false;
-        eqB.disabled = false;
-        labelA.classList.remove("disabled");
-        labelB.classList.remove("disabled");
-      } else {
-        eqA.disabled = true;
-        eqB.disabled = true;
-        eqA.checked = false;
-        eqB.checked = false;
-        labelA.classList.add("disabled");
-        labelB.classList.add("disabled");
-      }
-    }
-
-    radioTit.addEventListener("change", actualizarEquipos);
-    radioRes.addEventListener("change", actualizarEquipos);
-
-    div.querySelectorAll("input").forEach(inp => {
-      inp.addEventListener("change", () => actualizarCampo(jugador));
-    });
-
-    cont.appendChild(div);
-  });
-}
-
-  // ---------- LÓGICA ACTUALIZAR CAMPO ----------
-function actualizarCampo(jugador) {
-  const rol = getRolChecked(jugador.id);
-  const equipo = getEquipoChecked(jugador.id);
-
-  if (!rol) return;
-
-  // Siempre limpiamos cualquier rastro previo
-  quitarDeReservas(jugador.nombre);
-  quitarDelCampo(jugador.nombre);
-
-  if (rol.value === "titular") {
-    if (!equipo) return; // Esperamos elección de equipo
-
-    const equipoId = equipo.value;
-    recalcularOcupadas();
-
-    if ((equipoId === "A" && ocupadasA >= posiciones.A.length) ||
-        (equipoId === "B" && ocupadasB >= posiciones.B.length)) {
-      alert("Ya hay 5 titulares en ese equipo.");
-      return;
-    }
-
-    const posLibre = primeraPosicionLibre(equipoId);
-    if (!posLibre) return;
-
-    const el = document.getElementById(posLibre);
-    el.textContent = jugador.nombre;
-    el.classList.add("asignado");
-    setTimeout(() => el.classList.remove("asignado"), 350);
-
-    recalcularOcupadas();
-
-  } else if (rol.value === "reserva") {
-    addReservaSiNoExiste(jugador.nombre);
-  }
-}
-
-// ---------- RESET JUGADOR (fuera de actualizarCampo) ----------
-function resetJugador(id, nombre) {
-  document.querySelectorAll(`input[name="rol-${id}"]`).forEach(r => r.checked = false);
-  document.querySelectorAll(`input[name="equipo-${id}"]`).forEach(r => r.checked = false);
-  quitarDelCampo(nombre);
-  quitarDeReservas(nombre);
-  recalcularOcupadas();
-}
-window.resetJugador = resetJugador;
-
-
-  // ---------- COPIAR LISTA (mejorada) ----------
-  function copiarLista() {
-    let titularesA = [], titularesB = [], reservas = [];
-
-    posiciones.A.forEach(pos => {
-      const el = document.getElementById(pos);
-      if (el && el.textContent.trim() !== placeholderOf(el)) titularesA.push(el.textContent.trim() + " ⚪");
-    });
-    posiciones.B.forEach(pos => {
-      const el = document.getElementById(pos);
-      if (el && el.textContent.trim() !== placeholderOf(el)) titularesB.push(el.textContent.trim() + " ⚫");
-    });
-
-    [...listaReservas.children].forEach(li => reservas.push(li.dataset.nombre));
-
-    const texto =
-      "Titulares Equipo A:\n" + (titularesA.length ? titularesA.join("\n") : "—") +
-      "\n\nTitulares Equipo B:\n" + (titularesB.length ? titularesB.join("\n") : "—") +
-      "\n\nReservas:\n" + (reservas.length ? reservas.join("\n") : "—");
-
-    navigator.clipboard.writeText(texto).then(() => {
-      alert("Lista copiada al portapapeles.");
-    }).catch(() => {
-      alert("No se pudo copiar automáticamente. Selecciona y copia manualmente.");
-    });
-  }
-  window.copiarLista = copiarLista;
-  // ---------- GUARDAR ALINEACIÓN ----------
-async function guardarAlineacion() {
-  let titularesA = [], titularesB = [], reservas = [];
-  const fecha = document.getElementById("fechaInput").value;
-
-  // Recoger titulares del equipo A
-  posiciones.A.forEach(pos => {
-    const el = document.getElementById(pos);
-    if (el && el.textContent.trim() !== placeholderOf(el))
-      titularesA.push(el.textContent.trim());
-  });
-
-  // Recoger titulares del equipo B
-  posiciones.B.forEach(pos => {
-    const el = document.getElementById(pos);
-    if (el && el.textContent.trim() !== placeholderOf(el))
-      titularesB.push(el.textContent.trim());
-  });
-
-  // Recoger reservas
-  [...listaReservas.children].forEach(li => reservas.push(li.dataset.nombre));
-
-  // Texto para copiar al portapapeles
-  const texto =
-    "📅 *Fecha:* " + (fecha || "—") +
-    "\n\n⚪ *Equipo A (Blancos)*\n" + (titularesA.length ? "• " + titularesA.join("\n• ") : "—") +
-    "\n\n⚫ *Equipo B (Negros)*\n" + (titularesB.length ? "• " + titularesB.join("\n• ") : "—") +
-    "\n\n🔁 *Reservas*\n" + (reservas.length ? "• " + reservas.join("\n• ") : "—");
-
-  navigator.clipboard.writeText(texto);
-
-  // Guardar en Firebase con fecha como ID
-  try {
-    const docRefe = doc(db, "alineaciones", fecha);
-
-    // ✅ setDoc sobrescribe si ya existe el mismo ID (fecha)
-    await setDoc(docRefe, {
-      TitularesA: titularesA,
-      TitularesB: titularesB,
-      reservas: reservas,
-      fecha: fecha,
-      resultado: null
-    });
-
-    alert("✅ Alineación guardada en Firebase (única por fecha, sobrescrita si ya existía).");
-  } catch (e) {
-    console.error("Error al guardar en Firebase: ", e);
-    alert("❌ No se pudo guardar en Firebase.");
-  }
-}
-
-window.guardarAlineacion = guardarAlineacion;
-
-
-
-  // ---------- EXPORTAR IMAGEN (más nítida) ----------
-  function exportarImagen() {
-    html2canvas(document.getElementById("contenedorCampo"), { scale: 2 }).then(canvas => {
-      const link = document.createElement("a");
-      link.download = "alineacion.jpg";
-      link.href = canvas.toDataURL("image/jpeg", 0.95);
-      link.click();
-    }).catch(err => {
-      console.error("Error exportando imagen:", err);
-      alert("No se pudo exportar la imagen.");
-    });
-  }
-
-  // ---------- EVENTOS UI ----------
-  btnAddJugador.addEventListener("click", () => {
-    addJugador(inputNombre.value);
-    inputNombre.value = "";
-    inputNombre.focus();
-  });
-
-  inputNombre.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      addJugador(inputNombre.value);
-      inputNombre.value = "";
-    }
-  });
-
-  btnExport.addEventListener("click", exportarImagen);
-  btnCopiar.addEventListener("click", copiarLista);
-  btnAlineacion.addEventListener("click", guardarAlineacion);
-
-
-  // ---------- INICIALIZACIÓN ----------
-  // Inicializamos placeholders en el campo (por si el HTML se modifica)
-  function inicializarPlaceholders() {
-    [...posiciones.A, ...posiciones.B].forEach(pos => {
-      const el = document.getElementById(pos);
-      if (el && (!el.dataset.placeholder || el.dataset.placeholder.trim() === "")) {
-        el.dataset.placeholder = pos;
-      }
-      // Si el contenido es vacío, ponemos placeholder visible
-      if (el && (!el.textContent || el.textContent.trim() === "")) {
+      // 1. Limpiar todo el campo y radios antes de asignar
+      [...posiciones.A, ...posiciones.B].forEach(id => {
+        const el = document.getElementById(id);
         el.textContent = placeholderOf(el);
-      }
-    });
-    recalcularOcupadas();
+      });
+      document.querySelectorAll('input[name^="equipo-"]').forEach(r => r.checked = false);
+
+      // 2. ASIGNACIÓN DIRECTA (Evita el error de "pivot A")
+      eqA.forEach((jugador, index) => {
+        const posId = posiciones.A[index];
+        const el = document.getElementById(posId);
+        if (el) {
+          el.textContent = jugador.nombre;
+          const radio = document.getElementById(`eqA-${jugador.id}`);
+          if (radio) { radio.disabled = false; radio.checked = true; }
+        }
+      });
+
+      eqB.forEach((jugador, index) => {
+        const posId = posiciones.B[index];
+        const el = document.getElementById(posId);
+        if (el) {
+          el.textContent = jugador.nombre;
+          const radio = document.getElementById(`eqB-${jugador.id}`);
+          if (radio) { radio.disabled = false; radio.checked = true; }
+        }
+      });
+
+    } catch (e) { console.error(e); }
+    btn.disabled = false;
   }
 
-  inicializarPlaceholders();
-  cargarJugadores();
+  // --- RESTO DE FUNCIONES (CRUD y Firebase) ---
 
+  async function cargarJugadores() {
+    const snap = await getDocs(collection(db, "jugadores"));
+    jugadoresBD = snap.docs.map(d => ({ id: d.id, nombre: d.data().nombre }));
+    renderLista();
+  }
+
+  function renderLista() {
+    listaJugadoresCont.innerHTML = "";
+    jugadoresBD.forEach(j => {
+      const div = document.createElement("div");
+      div.className = "jugador-row";
+      div.innerHTML = `
+        <div class="jugador-nombre">${j.nombre}</div>
+        <div class="btn-group">
+          <input type="radio" class="btn-check" name="rol-${j.id}" id="tit-${j.id}" value="titular">
+          <label class="btn btn-outline-success" for="tit-${j.id}">Titular</label>
+          <input type="radio" class="btn-check" name="rol-${j.id}" id="res-${j.id}" value="reserva">
+          <label class="btn btn-outline-secondary" for="res-${j.id}">Reserva</label>
+        </div>
+        <div class="btn-group">
+          <input type="radio" class="btn-check" name="equipo-${j.id}" id="eqA-${j.id}" value="A" disabled>
+          <label class="btn btn-outline-dark" for="eqA-${j.id}">⚪</label>
+          <input type="radio" class="btn-check" name="equipo-${j.id}" id="eqB-${j.id}" value="B" disabled>
+          <label class="btn btn-outline-dark" for="eqB-${j.id}">⚫</label>
+        </div>
+        <button class="btn btn-warning btn-sm" onclick="removeJugador('${j.id}')">❌</button>
+        <button class="btn btn-secondary btn-sm" onclick="resetJugador('${j.id}','${j.nombre}')">🔄</button>
+      `;
+      div.querySelectorAll('input[name^="rol-"]').forEach(i => i.onchange = (e) => {
+        const isTit = e.target.value === "titular";
+        div.querySelector(`#eqA-${j.id}`).disabled = !isTit;
+        div.querySelector(`#eqB-${j.id}`).disabled = !isTit;
+        actualizarCampo(j);
+      });
+      div.querySelectorAll('input[name^="equipo-"]').forEach(i => i.onchange = () => actualizarCampo(j));
+      listaJugadoresCont.appendChild(div);
+    });
+  }
+
+  window.resetJugador = (id, nombre) => {
+    document.querySelectorAll(`input[name$="-${id}"]`).forEach(r => r.checked = false);
+    quitarDelCampo(nombre);
+  };
+
+  window.removeJugador = async (id) => {
+    if(!confirm("¿Borrar?")) return;
+    await deleteDoc(doc(db, "jugadores", id));
+    cargarJugadores();
+  };
+
+  btnAddJugador.onclick = async () => {
+    const n = inputNombre.value.trim();
+    if(n) { await addDoc(collection(db, "jugadores"), { nombre: n }); cargarJugadores(); inputNombre.value = ""; }
+  };
+
+  document.getElementById("btnAuto").onclick = generarEquiposEquilibrados;
+  document.getElementById("btnExport").onclick = () => { 
+    html2canvas(document.getElementById("contenedorCampo")).then(canvas => {
+      const link = document.createElement("a"); link.download = "alineacion.jpg"; link.href = canvas.toDataURL(); link.click();
+    });
+  };
+
+  // Inicialización de placeholders
+  [...posiciones.A, ...posiciones.B].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) {
+      // Priorizar el data-placeholder del HTML
+      el.dataset.placeholder = el.getAttribute('data-placeholder') || el.textContent.trim();
+    }
+  });
+  cargarJugadores();
 </script>
-</body>
 </html>
