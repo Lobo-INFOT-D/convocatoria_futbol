@@ -249,26 +249,46 @@
     const radioRol = document.querySelector(`input[name="rol-${jugador.id}"]:checked`);
     const radioEq = document.querySelector(`input[name="equipo-${jugador.id}"]:checked`);
 
+    // 1. Siempre lo quitamos de donde esté antes de moverlo
     quitarDelCampo(jugador.nombre);
     [...listaReservas.children].forEach(li => { if(li.dataset.nombre === jugador.nombre) li.remove(); });
 
-    if (radioRol?.value === "titular" && radioEq?.value) {
-      const eqId = radioEq.value;
-      // Buscar primer hueco libre
-      const posId = posiciones[eqId].find(id => esHuecoRealmenteLibre(document.getElementById(id)));
-      if (posId) {
-        const el = document.getElementById(posId);
-        el.textContent = jugador.nombre;
-        el.classList.add("asignado");
+    if (radioRol?.value === "titular") {
+      if (radioEq?.value) {
+        const eqId = radioEq.value;
+        
+        // 2. Buscamos si hay un hueco libre en el nuevo equipo
+        const posId = posiciones[eqId].find(id => esHuecoRealmenteLibre(document.getElementById(id)));
+        
+        if (posId) {
+          const el = document.getElementById(posId);
+          el.textContent = jugador.nombre;
+          el.classList.add("asignado");
+        } else {
+          // Si el equipo está lleno, avisamos y desmarcamos el equipo
+          alert("El Equipo " + (eqId === 'A' ? 'Blanco' : 'Negro') + " ya tiene 5 jugadores. Mueve a otro primero.");
+          radioEq.checked = false; 
+        }
       }
     } else if (radioRol?.value === "reserva") {
-      const li = document.createElement("li");
-      li.className = "list-group-item";
-      li.dataset.nombre = jugador.nombre;
-      li.innerHTML = `<span>${jugador.nombre}</span><button class="btn btn-sm btn-outline-danger">❌</button>`;
-      li.querySelector("button").onclick = () => li.remove();
-      listaReservas.appendChild(li);
+      addReservaSiNoExiste(jugador.nombre);
     }
+  }
+  function addReservaSiNoExiste(nombre) {
+    // Evitar duplicados en la lista de abajo
+    if ([...listaReservas.children].some(li => li.dataset.nombre === nombre)) return;
+    
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex justify-content-between align-items-center";
+    li.dataset.nombre = nombre;
+    li.innerHTML = `<span>${nombre}</span><button class="btn btn-sm btn-outline-danger">❌</button>`;
+    li.querySelector("button").onclick = () => {
+        li.remove();
+        // Al quitar de reserva, también desmarcamos el radio de la lista
+        const jId = jugadoresBD.find(j => j.nombre === nombre)?.id;
+        if(jId) document.querySelectorAll(`input[name="rol-${jId}"]`).forEach(r => r.checked = false);
+    };
+    listaReservas.appendChild(li);
   }
 
   // Lógica para botón AUTOMÁTICO (Reparto equilibrado)
